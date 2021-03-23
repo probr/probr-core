@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
@@ -14,13 +15,23 @@ import (
 	"github.com/citihub/probr-core/internal/core"
 )
 
-var cmd string
+var packName, varsFile string
 
 func main() {
-	packName := "azureapim"
+	argCount := len(os.Args[1:])
+	if argCount < 2 {
+		// TODO: deal with this error properly
+		log.Fatal("First argument should be the name of the service pack, second should be path to config file")
+	} else {
+		packName = os.Args[1]
+		varsFile = os.Args[2]
+	}
 	cmd := exec.Command(packBinary(packName))
-	cmd.Args = append(cmd.Args, "--varsfile=config.yml")
-	cmd.Args = append(cmd.Args, "--tags=@k-gen")
+	cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", varsFile))
+
+	if argCount > 3 {
+		cmd.Args = append(cmd.Args, os.Args[3:]...)
+	}
 
 	// Launch the plugin process
 	client := core.NewClient(cmd, packName)
