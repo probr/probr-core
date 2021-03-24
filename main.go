@@ -18,6 +18,7 @@ import (
 var packName, varsFile string
 
 func main() {
+
 	argCount := len(os.Args[1:])
 	if argCount < 2 {
 		// TODO: deal with this error properly
@@ -28,13 +29,15 @@ func main() {
 	}
 	cmd := exec.Command(packBinary(packName))
 	cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", varsFile))
+	cmd.Args = append(cmd.Args, fmt.Sprintf("--tags=%s", "@k-gen"))
+	cmd.Args = append(cmd.Args, fmt.Sprintf("--loglevel=%s", "DEBUG"))
 
 	if argCount > 3 {
 		cmd.Args = append(cmd.Args, os.Args[3:]...)
 	}
 
 	// Launch the plugin process
-	client := core.NewClient(cmd, packName)
+	client := core.NewClient(cmd)
 	defer client.Kill()
 
 	// Connect via RPC
@@ -44,7 +47,7 @@ func main() {
 	}
 
 	// Request the plugin
-	rawSP, err := rpcClient.Dispense(packName)
+	rawSP, err := rpcClient.Dispense(plugin.ServicePackPluginName)
 	if err != nil {
 		log.Fatal(err)
 	}

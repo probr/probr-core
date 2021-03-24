@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 
@@ -16,19 +15,20 @@ var logger hclog.Logger
 // A client handles the lifecycle of a plugin application
 // Plugin hosts should use one Client for each plugin executable
 // (this is different from the client that manages gRPC)
-func NewClient(cmd *exec.Cmd, packName string) *hcplugin.Client {
+func NewClient(cmd *exec.Cmd) *hcplugin.Client {
+	// TODO: Move reusable code blocks to SDK, such as: GetPluginMap; GetHandshakeConfig;
 	logger = hclog.New(&hclog.LoggerOptions{
-		Name:   packName,
+		Name:   plugin.ServicePackPluginName,
 		Output: os.Stdout,
 		Level:  hclog.Debug,
 	})
 	var pluginMap = map[string]hcplugin.Plugin{
-		packName: &plugin.ServicePackPlugin{},
+		plugin.ServicePackPluginName: &plugin.ServicePackPlugin{},
 	}
 	var handshakeConfig = hcplugin.HandshakeConfig{
 		ProtocolVersion:  1,
-		MagicCookieKey:   "BASIC_PLUGIN",
-		MagicCookieValue: fmt.Sprintf("probr.servicepack.%s", packName),
+		MagicCookieKey:   "PROBR_MAGIC_COOKIE",
+		MagicCookieValue: "probr.servicepack",
 	}
 	return hcplugin.NewClient(&hcplugin.ClientConfig{
 		HandshakeConfig: handshakeConfig,
