@@ -2,6 +2,10 @@
 AuditEnabled: true
 #WriteDirectory: out
 OverwriteHistoricalAudits: true
+Run: # must be all-lowercase
+  - "kubernetes"
+Tags:
+  - "@k-gen"
 ServicePacks:
   Kubernetes:
     KubeConfig: 

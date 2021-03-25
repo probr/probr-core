@@ -9,7 +9,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	plugin "github.com/citihub/probr-sdk/plugin"
+	"github.com/citihub/probr-sdk/config"
+	"github.com/citihub/probr-sdk/plugin"
 	hcplugin "github.com/hashicorp/go-plugin"
 
 	"github.com/citihub/probr-core/internal/core"
@@ -19,25 +20,10 @@ var packName, varsFile string
 
 func main() {
 
-	argCount := len(os.Args[1:])
-	if argCount < 2 {
-		// TODO: deal with this error properly
-		log.Fatal("First argument should be the name of the service pack, second should be path to config file")
-	} else {
-		packName = os.Args[1]
-		varsFile = os.Args[2]
-	}
-	cmd := exec.Command(packBinary(packName))
-	cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", varsFile))
-	cmd.Args = append(cmd.Args, fmt.Sprintf("--tags=%s", "@k-gen"))
-	cmd.Args = append(cmd.Args, fmt.Sprintf("--loglevel=%s", "DEBUG"))
-
-	if argCount > 3 {
-		cmd.Args = append(cmd.Args, os.Args[3:]...)
-	}
+	cmdSet := parseFlags()
 
 	// Launch the plugin process
-	client := core.NewClient(cmd)
+	client := core.NewClient(cmdSet[0])
 	defer client.Kill()
 
 	// Connect via RPC
@@ -76,4 +62,35 @@ func packBinary(name string) string {
 		panic(fmt.Sprintf("Please ensure requested plugin '%s' has been installed to '%s'", name, binaryPath))
 	}
 	return plugins[0]
+}
+
+func parseFlags() []*exec.Cmd {
+	var configPath string
+	argCount := len(os.Args[1:])
+	if argCount < 1 {
+		// TODO: deal with this error properly
+		log.Fatal("First argument should path to config file")
+	} else {
+		configPath = os.Args[1]
+	}
+
+	packNames := getPackNameFromConfig(configPath)
+
+	var cmdSet []*exec.Cmd
+	for _, pack := range packNames {
+		cmd := exec.Command(packBinary(pack))
+		cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", configPath))
+
+		if argCount > 3 {
+			// TODO: passing flags to service pack isn't scalable
+			cmd.Args = append(cmd.Args, os.Args[3:]...)
+		}
+		cmdSet = append(cmdSet, cmd)
+	}
+	return cmdSet
+}
+
+func getPackNameFromConfig(configPath string) (packNames []string) {
+	config.Init(configPath)
+	return config.Vars.Run
 }
