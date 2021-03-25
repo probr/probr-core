@@ -22,26 +22,27 @@ func main() {
 
 	cmdSet := parseFlags()
 
-	// Launch the plugin process
-	client := core.NewClient(cmdSet[0])
-	defer client.Kill()
+	for _, cmd := range cmdSet {
+		// Launch the plugin process
+		client := core.NewClient(cmd)
+		defer client.Kill()
 
-	// Connect via RPC
-	rpcClient, err := client.Client()
-	if err != nil {
-		log.Fatal(err)
+		// Connect via RPC
+		rpcClient, err := client.Client()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Request the plugin
+		rawSP, err := rpcClient.Dispense(plugin.ServicePackPluginName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		// We should have a ServicePack now! This feels like a normal interface
+		// implementation but is in fact over an RPC connection.
+		servicePack := rawSP.(plugin.ServicePack)
+		fmt.Println(servicePack.Greet())
 	}
-
-	// Request the plugin
-	rawSP, err := rpcClient.Dispense(plugin.ServicePackPluginName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// We should have a ServicePack now! This feels like a normal interface
-	// implementation but is in fact over an RPC connection.
-	servicePack := rawSP.(plugin.ServicePack)
-	fmt.Println(servicePack.Greet())
 }
 
 func userHomeDir() string {
@@ -59,7 +60,7 @@ func packBinary(name string) string {
 	binaryPath := filepath.Join(userHomeDir(), "probr", "binaries")
 	plugins, _ := hcplugin.Discover(name, binaryPath)
 	if len(plugins) != 1 {
-		panic(fmt.Sprintf("Please ensure requested plugin '%s' has been installed to '%s'", name, binaryPath))
+		log.Fatalf("Please ensure requested plugin '%s' has been installed to '%s'", name, binaryPath)
 	}
 	return plugins[0]
 }

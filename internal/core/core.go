@@ -12,7 +12,7 @@ import (
 
 var logger hclog.Logger
 
-// A client handles the lifecycle of a plugin application
+// NewClient client handles the lifecycle of a plugin application
 // Plugin hosts should use one Client for each plugin executable
 // (this is different from the client that manages gRPC)
 func NewClient(cmd *exec.Cmd) *hcplugin.Client {
