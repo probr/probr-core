@@ -67,8 +67,8 @@ func packBinary(name string) string {
 
 func parseFlags() []*exec.Cmd {
 	var configPath string
-	argCount := len(os.Args[1:])
-	if argCount < 1 {
+	argCount := len(os.Args)
+	if argCount < 2 {
 		// TODO: deal with this error properly
 		log.Fatal("First argument should path to config file")
 	} else {
@@ -82,9 +82,9 @@ func parseFlags() []*exec.Cmd {
 		cmd := exec.Command(packBinary(pack))
 		cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", configPath))
 
-		if argCount > 3 {
+		if argCount > 2 {
 			// TODO: passing flags to service pack isn't scalable
-			cmd.Args = append(cmd.Args, os.Args[3:]...)
+			cmd.Args = append(cmd.Args, os.Args[2:]...)
 		}
 		cmdSet = append(cmdSet, cmd)
 	}

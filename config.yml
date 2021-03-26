@@ -4,8 +4,6 @@ AuditEnabled: true
 OverwriteHistoricalAudits: true
 Run: # must be all-lowercase
   - "kubernetes"
-Tags:
-  - "@k-gen"
 ServicePacks:
   Kubernetes:
     KubeConfig: 
