@@ -122,8 +122,8 @@ func getPackNameFromConfig(configPath string) (packNames []string, err error) {
 	return
 }
 
-func runAllPlugins(cmdSet []*exec.Cmd) (err error) {
-
+func runAllPlugins(cmdSet []*exec.Cmd) error {
+	var err error
 	spErrors := make([]core.ServicePackError, 0) // Intialize collection to store any service pack error received during plugin execution
 
 	for _, cmd := range cmdSet {
@@ -145,18 +145,17 @@ func runAllPlugins(cmdSet []*exec.Cmd) (err error) {
 		// We should have a ServicePack now! This feels like a normal interface
 		// implementation but is in fact over an RPC connection.
 		servicePack := rawSP.(plugin.ServicePack)
-		fmt.Println(servicePack.Greet())
-		// TODO: Return error on servicepack instead of string
-		// spErr := servicePack.RunProbes()
-		// if spErr != nill {
-		// 	spErrKubernetes := &core.ServicePackError{
-		// 		ServicePackName: cmd.String(),
-		// 		Err:             spErr,
-		// 	}
-		// 	spErrors = append(spErrors, *spErrKubernetes)
-		// }
-
-		// TODO: Confirm how to hanlde long-running plugins, since this will block until finished. Potential time out.
+		result := servicePack.RunProbes()
+		if result != nil {
+			spErr := &core.ServicePackError{
+				ServicePack: cmd.String(),
+				Err:         result,
+			}
+			spErrors = append(spErrors, *spErr)
+		} else {
+			log.Printf("[INFO] Probes all completed with successful results")
+		}
+		// TODO: Confirm how to handle long-running plugins, since this will block until finished. Potential time out.
 	}
 
 	if len(spErrors) > 0 {
@@ -166,5 +165,5 @@ func runAllPlugins(cmdSet []*exec.Cmd) (err error) {
 		}
 	}
 
-	return
+	return err
 }
