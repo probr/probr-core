@@ -50,7 +50,7 @@ func Test_packBinary(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := packBinary(tt.args.name); got != tt.want {
+			if got, _ := packBinary(tt.args.name); got != tt.want {
 				t.Errorf("packBinary() = %v, want %v", got, tt.want)
 			}
 		})
@@ -66,7 +66,7 @@ func Test_parseFlags(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := parseFlags(); !reflect.DeepEqual(got, tt.want) {
+			if got, _ := parseFlags(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("parseFlags() = %v, want %v", got, tt.want)
 			}
 		})
@@ -86,7 +86,7 @@ func Test_getPackNameFromConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if gotPackNames := getPackNameFromConfig(tt.args.configPath); !reflect.DeepEqual(gotPackNames, tt.wantPackNames) {
+			if gotPackNames, _ := getPackNameFromConfig(tt.args.configPath); !reflect.DeepEqual(gotPackNames, tt.wantPackNames) {
 				t.Errorf("getPackNameFromConfig() = %v, want %v", gotPackNames, tt.wantPackNames)
 			}
 		})

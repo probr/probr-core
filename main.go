@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -8,6 +9,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/citihub/probr-sdk/config"
 	"github.com/citihub/probr-sdk/plugin"
@@ -20,28 +22,36 @@ var packName, varsFile string
 
 func main() {
 
-	cmdSet := parseFlags()
+	// Setup for handling SIGTERM (Ctrl+C)
+	core.SetupCloseHandler()
 
-	for _, cmd := range cmdSet {
-		// Launch the plugin process
-		client := core.NewClient(cmd)
-		defer client.Kill()
+	// Handle cli args and load plugins from config file
+	cmdSet, err := parseFlags()
+	if err != nil {
+		log.Printf("Error loading plugins from config: %v", err)
+		os.Exit(2)
+	}
 
-		// Connect via RPC
-		rpcClient, err := client.Client()
-		if err != nil {
-			log.Fatal(err)
+	totalCount := len(cmdSet)
+	if totalCount == 0 {
+		log.Print("No service pack found in config")
+		return
+	}
+
+	// Run all plugins
+	//  exit 2 on internal error
+	//  exit 1 on service pack error(s)
+	//  exit 0 on success
+	if err := runAllPlugins(cmdSet); err != nil {
+		switch e := err.(type) {
+		case *core.ServicePackErrors:
+			log.Printf("Test Failures: %d out of %d test service packs failed", len(e.SPErrs), totalCount)
+			log.Printf("Failed service packs: %v", e.SPErrs)
+			os.Exit(1) // At least one service pack failed
+		default:
+			log.Printf("Internal plugin error: %v", err)
+			os.Exit(2) // Internal error
 		}
-
-		// Request the plugin
-		rawSP, err := rpcClient.Dispense(plugin.ServicePackPluginName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		// We should have a ServicePack now! This feels like a normal interface
-		// implementation but is in fact over an RPC connection.
-		servicePack := rawSP.(plugin.ServicePack)
-		fmt.Println(servicePack.Greet())
 	}
 }
 
@@ -53,33 +63,42 @@ func userHomeDir() string {
 	return user.HomeDir
 }
 
-func packBinary(name string) string {
-	if runtime.GOOS == "windows" {
+func packBinary(name string) (binaryName string, err error) {
+	if runtime.GOOS == "windows" && !strings.HasSuffix(strings.ToLower(name), ".exe") {
 		name = fmt.Sprintf("%s.exe", name)
 	}
-	binaryPath := filepath.Join(userHomeDir(), "probr", "binaries")
+	binaryPath := filepath.Join(userHomeDir(), "probr", "binaries") // TODO Load from config.
 	plugins, _ := hcplugin.Discover(name, binaryPath)
 	if len(plugins) != 1 {
-		log.Fatalf("Please ensure requested plugin '%s' has been installed to '%s'", name, binaryPath)
+		err = fmt.Errorf("Please ensure requested plugin '%s' has been installed to '%s'", name, binaryPath)
+		return
 	}
-	return plugins[0]
+	binaryName = plugins[0]
+
+	return
 }
 
-func parseFlags() []*exec.Cmd {
+func parseFlags() (cmdSet []*exec.Cmd, err error) {
 	var configPath string
 	argCount := len(os.Args)
 	if argCount < 2 {
-		// TODO: deal with this error properly
-		log.Fatal("First argument should path to config file")
-	} else {
-		configPath = os.Args[1]
+		err = errors.New("First argument should path to config file")
+		return
+	}
+	configPath = os.Args[1]
+
+	packNames, err := getPackNameFromConfig(configPath)
+	if err != nil {
+		return
 	}
 
-	packNames := getPackNameFromConfig(configPath)
-
-	var cmdSet []*exec.Cmd
 	for _, pack := range packNames {
-		cmd := exec.Command(packBinary(pack))
+		binaryName, binErr := packBinary(pack)
+		if binErr != nil {
+			err = binErr
+			break
+		}
+		cmd := exec.Command(binaryName)
 		cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", configPath))
 
 		if argCount > 2 {
@@ -88,10 +107,64 @@ func parseFlags() []*exec.Cmd {
 		}
 		cmdSet = append(cmdSet, cmd)
 	}
-	return cmdSet
+
+	return
 }
 
-func getPackNameFromConfig(configPath string) (packNames []string) {
-	config.Init(configPath)
-	return config.Vars.Run
+func getPackNameFromConfig(configPath string) (packNames []string, err error) {
+	err = config.Init(configPath)
+	if err != nil {
+		return
+	}
+
+	packNames = config.Vars.Run
+
+	return
+}
+
+func runAllPlugins(cmdSet []*exec.Cmd) (err error) {
+
+	spErrors := make([]core.ServicePackError, 0) // Intialize collection to store any service pack error received during plugin execution
+
+	for _, cmd := range cmdSet {
+		// Launch the plugin process
+		client := core.NewClient(cmd)
+		defer client.Kill()
+
+		// Connect via RPC
+		rpcClient, err := client.Client()
+		if err != nil {
+			return err
+		}
+
+		// Request the plugin
+		rawSP, err := rpcClient.Dispense(plugin.ServicePackPluginName)
+		if err != nil {
+			return err
+		}
+		// We should have a ServicePack now! This feels like a normal interface
+		// implementation but is in fact over an RPC connection.
+		servicePack := rawSP.(plugin.ServicePack)
+		fmt.Println(servicePack.Greet())
+		// TODO: Return error on servicepack instead of string
+		// spErr := servicePack.RunProbes()
+		// if spErr != nill {
+		// 	spErrKubernetes := &core.ServicePackError{
+		// 		ServicePackName: cmd.String(),
+		// 		Err:             spErr,
+		// 	}
+		// 	spErrors = append(spErrors, *spErrKubernetes)
+		// }
+
+		// TODO: Confirm how to hanlde long-running plugins, since this will block until finished. Potential time out.
+	}
+
+	if len(spErrors) > 0 {
+		// Return all service pack errors to main
+		err = &core.ServicePackErrors{
+			SPErrs: spErrors,
+		}
+	}
+
+	return
 }

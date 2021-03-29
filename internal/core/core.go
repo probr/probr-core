@@ -1,10 +1,14 @@
 package core
 
 import (
+	"log"
 	"os"
 	"os/exec"
+	"os/signal"
+	"syscall"
 
 	"github.com/citihub/probr-sdk/plugin"
+	"github.com/citihub/probr-sdk/probeengine"
 
 	hclog "github.com/hashicorp/go-hclog"
 	hcplugin "github.com/hashicorp/go-plugin"
@@ -36,4 +40,20 @@ func NewClient(cmd *exec.Cmd) *hcplugin.Client {
 		Cmd:             cmd,
 		Logger:          logger,
 	})
+}
+
+// SetupCloseHandler creates a 'listener' on a new goroutine which will notify the
+// program if it receives an interrupt from the OS. We then handle this by calling
+// our clean up procedure and exiting the program.
+// Ref: https://golangcode.com/handle-ctrl-c-exit-in-terminal/
+func SetupCloseHandler() {
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		log.Printf("Execution aborted - %v", "SIGTERM")
+		probeengine.CleanupTmp()
+		// TODO: Additional cleanup may be needed. For instance, any pods created during tests are not being dropped if aborted. Better call: probrengine.Cleanup()
+		os.Exit(0)
+	}()
 }
