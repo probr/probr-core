@@ -4,6 +4,7 @@ AuditEnabled: true
 OverwriteHistoricalAudits: true
 Run: # must be all-lowercase
   - "kubernetes"
+  - "storage"
 ServicePacks:
   Kubernetes:
     KubeConfig: 
@@ -29,16 +30,14 @@ ServicePacks:
         Scenarios: # allows this probe's scenarios to be disabled using their probe tag value
           - Name: "1.0"
             Excluded: # "Excluded to demonstrate scenario exclusion option"
-  # Storage:
-  #   Provider: Azure # if object OR required vars within it are omitted, pack will not be included
-  Nist80053:
-    Revision: 5 # if object OR required vars within it are omitted, pack will not be included
+  Storage:
+    Provider: Azure # if object OR required vars within it are omitted, pack will not be included
 CloudProviders:
   Azure:
-    TenantID: "e6b4bec0-1c8e-45af-9616-da7a11e09858"
-    SubscriptionID: "4a00d15a-d732-4844-bf37-c408354cf7dd"
-    ClientID: "007052d6-208e-45f1-b2c1-35930fae02c9"
-    ClientSecret: "70bjv-r0IBW6UPJFs9-83-f5-5X_.X77m."
+    TenantID: ""
+    SubscriptionID: ""
+    ClientID: ""
+    ClientSecret: ""
     ManagementGroup:
     ResourceGroup: ProbrRG
     ResourceLocation: "westeurope"
