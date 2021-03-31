@@ -32,6 +32,8 @@ github.com/citihub/probr-sdk v0.0.14 h1:HtrUdIA8rejH4pQrN5ib87jACy5t+xI9O5DUGtye
 github.com/citihub/probr-sdk v0.0.14/go.mod h1:XADlJGAM8nuve31Rh3OdL9jJa0SpK0p77RWbXBmSOBM=
 github.com/citihub/probr-sdk v0.0.15 h1:g8QVbuwb/AY/oZPfZXn2WMj/hjKbS8vaFzXeLhwq1r4=
 github.com/citihub/probr-sdk v0.0.15/go.mod h1:XADlJGAM8nuve31Rh3OdL9jJa0SpK0p77RWbXBmSOBM=
+github.com/citihub/probr-sdk v0.0.16 h1:P0cofWmCTXrkBLT32RcHs1AoSmC7ZsGSOXkZqRq6PDQ=
+github.com/citihub/probr-sdk v0.0.16/go.mod h1:XADlJGAM8nuve31Rh3OdL9jJa0SpK0p77RWbXBmSOBM=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/coreos/bbolt v1.3.2/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=
 github.com/coreos/etcd v3.3.13+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=

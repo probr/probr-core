@@ -1,19 +1,11 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"os/user"
-	"path/filepath"
-	"runtime"
-	"strings"
 
-	"github.com/citihub/probr-sdk/config"
 	"github.com/citihub/probr-sdk/plugin"
-	hcplugin "github.com/hashicorp/go-plugin"
 
 	"github.com/citihub/probr-core/internal/core"
 )
@@ -25,10 +17,15 @@ func main() {
 	// Setup for handling SIGTERM (Ctrl+C)
 	core.SetupCloseHandler()
 
-	// Handle cli args and load plugins from config file
-	cmdSet, err := parseFlags()
+	core.ParseFlags()
+	// if err != nil {
+	// 	log.Printf("Error parsing flags from command line: %s", err)
+	// 	os.Exit(2)
+	// }
+
+	cmdSet, err := core.GetCommands()
 	if err != nil {
-		log.Printf("Error loading plugins from config: %v", err)
+		log.Printf("Error loading plugins from config: %s", err)
 		os.Exit(2)
 	}
 
@@ -53,73 +50,6 @@ func main() {
 			os.Exit(2) // Internal error
 		}
 	}
-}
-
-func userHomeDir() string {
-	user, err := user.Current()
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	return user.HomeDir
-}
-
-func packBinary(name string) (binaryName string, err error) {
-	if runtime.GOOS == "windows" && !strings.HasSuffix(strings.ToLower(name), ".exe") {
-		name = fmt.Sprintf("%s.exe", name)
-	}
-	binaryPath := filepath.Join(userHomeDir(), "probr", "binaries") // TODO Load from config.
-	plugins, _ := hcplugin.Discover(name, binaryPath)
-	if len(plugins) != 1 {
-		err = fmt.Errorf("Please ensure requested plugin '%s' has been installed to '%s'", name, binaryPath)
-		return
-	}
-	binaryName = plugins[0]
-
-	return
-}
-
-func parseFlags() (cmdSet []*exec.Cmd, err error) {
-	var configPath string
-	argCount := len(os.Args)
-	if argCount < 2 {
-		err = errors.New("First argument should path to config file")
-		return
-	}
-	configPath = os.Args[1]
-
-	packNames, err := getPackNameFromConfig(configPath)
-	if err != nil {
-		return
-	}
-
-	for _, pack := range packNames {
-		binaryName, binErr := packBinary(pack)
-		if binErr != nil {
-			err = binErr
-			break
-		}
-		cmd := exec.Command(binaryName)
-		cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", configPath))
-
-		if argCount > 2 {
-			// TODO: passing flags to service pack isn't scalable
-			cmd.Args = append(cmd.Args, os.Args[2:]...)
-		}
-		cmdSet = append(cmdSet, cmd)
-	}
-
-	return
-}
-
-func getPackNameFromConfig(configPath string) (packNames []string, err error) {
-	err = config.Init(configPath)
-	if err != nil {
-		return
-	}
-
-	packNames = config.Vars.Run
-
-	return
 }
 
 func runAllPlugins(cmdSet []*exec.Cmd) error {

@@ -4,7 +4,7 @@ AuditEnabled: true
 OverwriteHistoricalAudits: true
 Run: # must be all-lowercase
   - "kubernetes"
-  - "storage"
+  # - "storage"
 ServicePacks:
   Kubernetes:
     KubeConfig: 
@@ -16,13 +16,14 @@ ServicePacks:
       - NET_RAW
     SystemNamespace: kube-system
     DashboardPodNamePrefix: kubernetes-dashboard
+    # TODO: these exclusions are not being handled in the SP
     Probes: # allows this pack's probes to be disabled by name
       - Name: pod_security_policy
         Excluded: "out"
       - Name: iam
-        Excluded:
+        Excluded: out
       - Name: general
-        Excluded: "out"
+        Excluded:
       - Name: container_registry_access
         Excluded: "out"
       - Name: internet_access
