@@ -13,7 +13,6 @@ import (
 
 	"github.com/citihub/probr-sdk/config"
 	"github.com/citihub/probr-sdk/plugin"
-	"github.com/citihub/probr-sdk/probeengine"
 	hcplugin "github.com/hashicorp/go-plugin"
 
 	"github.com/citihub/probr-core/internal/core"
@@ -25,7 +24,6 @@ func main() {
 
 	// Setup for handling SIGTERM (Ctrl+C)
 	core.SetupCloseHandler()
-	defer probeengine.CleanupTmp()
 
 	// Handle cli args and load plugins from config file
 	cmdSet, err := parseFlags()
