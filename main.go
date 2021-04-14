@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -10,10 +12,47 @@ import (
 	"github.com/citihub/probr-core/internal/core"
 )
 
+var (
+	// Version is the main version number that is being run at the moment
+	Version = "0.0.0"
+
+	// Prerelease is a marker for the version. If this is "" (empty string)
+	// then it means that it is a final release. Otherwise, this is a pre-release
+	// such as "dev" (in development), "beta", "rc1", etc.
+	Prerelease = "dev"
+
+	// GitCommitHash shall be used to store commit id when building release
+	GitCommitHash = ""
+)
+
 var packName, varsFile string
 
 func main() {
 
+	// > probr list
+	flag.NewFlagSet("list", flag.ExitOnError)
+
+	// > probr version
+	flag.NewFlagSet("version", flag.ExitOnError)
+
+	subCommand := ""
+	if len(os.Args) > 1 {
+		subCommand = os.Args[1]
+	}
+	switch subCommand {
+	case "list":
+		listServicePacks()
+
+	case "version":
+		printVersion()
+
+	default:
+		runServicePacks()
+	}
+	// Ref for handling cli subcommands: https://gobyexample.com/command-line-subcommands
+}
+
+func runServicePacks() {
 	// Setup for handling SIGTERM (Ctrl+C)
 	core.SetupCloseHandler()
 
@@ -96,4 +135,50 @@ func runAllPlugins(cmdSet []*exec.Cmd) error {
 	}
 
 	return err
+}
+
+//listServicePacks lists all service packs declared in config and checks if they are installed
+func listServicePacks() {
+
+	// TODO: Use a writer for output instead of fmt.Printf
+
+	declaredServicePacks, err := core.GetPackNameFromConfig()
+	if err != nil {
+		log.Fatalf("An error occurred while retriveing service packs from config: %v", err)
+	}
+
+	servicePacks := make(map[string]string)
+
+	for _, pack := range declaredServicePacks {
+		_, binErr := core.GetPackBinary(pack)
+		if binErr != nil {
+			servicePacks[pack] = fmt.Sprintf("ERROR: %v", binErr)
+		} else {
+			servicePacks[pack] = "OK"
+		}
+	}
+
+	// Print output
+	fmt.Println("Listing all declared service packs... ")
+	fmt.Println("| Service Pack\t\t\t\t | Installed ")
+	for k, v := range servicePacks {
+		fmt.Println(fmt.Sprintf("| %s\t\t\t\t | %s", k, v))
+	}
+}
+
+func printVersion() {
+	// TODO: Use a writer for output instead of fmt.Printf
+
+	fmt.Printf("Probr Version: %s", getVersion())
+	fmt.Println()
+	fmt.Printf("Commit: %s", GitCommitHash)
+	//Ref: https://www.digitalocean.com/community/tutorials/using-ldflags-to-set-version-information-for-go-applications
+	// To set a version during build time: go build -o probr -ldflags="-X 'main.Version=0.12.0' -X 'main.Prerelease=rc' -X 'main.GitCommitHash=123456'"
+}
+
+func getVersion() string {
+	if Prerelease != "" {
+		return fmt.Sprintf("%s-%s", Version, Prerelease)
+	}
+	return Version
 }

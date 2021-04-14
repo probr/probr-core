@@ -28,10 +28,6 @@ github.com/briandowns/spinner v1.12.0 h1:72O0PzqGJb6G3KgrcIOtL/JAGGZ5ptOMCn9cUHm
 github.com/briandowns/spinner v1.12.0/go.mod h1:QOuQk7x+EaDASo80FEXwlwiA+j/PPIcX3FScO+3/ZPQ=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
-github.com/citihub/probr-sdk v0.0.14 h1:HtrUdIA8rejH4pQrN5ib87jACy5t+xI9O5DUGtyebyY=
-github.com/citihub/probr-sdk v0.0.14/go.mod h1:XADlJGAM8nuve31Rh3OdL9jJa0SpK0p77RWbXBmSOBM=
-github.com/citihub/probr-sdk v0.0.15 h1:g8QVbuwb/AY/oZPfZXn2WMj/hjKbS8vaFzXeLhwq1r4=
-github.com/citihub/probr-sdk v0.0.15/go.mod h1:XADlJGAM8nuve31Rh3OdL9jJa0SpK0p77RWbXBmSOBM=
 github.com/citihub/probr-sdk v0.0.16 h1:P0cofWmCTXrkBLT32RcHs1AoSmC7ZsGSOXkZqRq6PDQ=
 github.com/citihub/probr-sdk v0.0.16/go.mod h1:XADlJGAM8nuve31Rh3OdL9jJa0SpK0p77RWbXBmSOBM=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=

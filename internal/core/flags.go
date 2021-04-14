@@ -21,7 +21,7 @@ var binariesPath string
 // ParseFlags ...
 func ParseFlags() {
 	var flags cliflags.Flags
-	flags.NewStringFlag("binaries-path", "custom override for service pack binary location", binariesPathHandler)
+	flags.NewStringFlag("binaries-path", "Location for service pack binaries. If not provided, default value is: [UserHomeDir]/probr/binaries", binariesPathHandler)
 	flags.ExecuteHandlers()
 }
 
@@ -32,19 +32,17 @@ func binariesPathHandler(v *string) {
 // GetCommands ...
 func GetCommands() (cmdSet []*exec.Cmd, err error) {
 	// TODO: give any exec errors a familiar format
-	workDir, err := os.Getwd()
+	configPath, err := getConfigPath()
 	if err != nil {
 		return
 	}
-	configPath := filepath.Join(workDir, "config.yml")
-
-	packNames, err := getPackNameFromConfig(configPath)
+	packNames, err := GetPackNameFromConfig()
 	if err != nil {
 		return
 	}
 
 	for _, pack := range packNames {
-		binaryName, binErr := packBinary(pack)
+		binaryName, binErr := GetPackBinary(pack)
 		if binErr != nil {
 			err = binErr
 			break
@@ -66,7 +64,8 @@ func userHomeDir() string {
 	return user.HomeDir
 }
 
-func packBinary(name string) (binaryName string, err error) {
+// GetPackBinary finds provided service pack in installation folder and return binary name
+func GetPackBinary(name string) (binaryName string, err error) {
 	name = strings.ToLower(name)
 	if runtime.GOOS == "windows" && !strings.HasSuffix(name, ".exe") {
 		name = fmt.Sprintf("%s.exe", name)
@@ -85,7 +84,23 @@ func packBinary(name string) (binaryName string, err error) {
 	return
 }
 
-func getPackNameFromConfig(configPath string) (packNames []string, err error) {
+func getConfigPath() (configPath string, err error) {
+	workDir, err := os.Getwd()
+	if err != nil {
+		return
+	}
+	configPath = filepath.Join(workDir, "config.yml")
+
+	return
+}
+
+// GetPackNameFromConfig returns all service packs declared in config file
+func GetPackNameFromConfig() (packNames []string, err error) {
+	configPath, err := getConfigPath()
+	if err != nil {
+		return
+	}
+
 	err = config.Init(configPath)
 	if err != nil {
 		return
