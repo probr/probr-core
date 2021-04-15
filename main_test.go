@@ -4,15 +4,40 @@ import (
 	"testing"
 )
 
-func Test_main(t *testing.T) {
+func Test_getVersion(t *testing.T) {
 	tests := []struct {
-		name string
+		testName       string
+		prerelase      string
+		version        string
+		expectedResult string
 	}{
-		// TODO: Add test cases.
+		// Test cases
+		{
+			testName:       "getVersion_WithDevPrelease_ShouldReturnVersionAndPrerelease",
+			prerelase:      "dev",
+			version:        "0.0.0",
+			expectedResult: "0.0.0-dev",
+		},
+		{
+			testName:       "getVersion_WithRCPrelease_ShouldReturnVersionAndPrerelease",
+			prerelase:      "rc",
+			version:        "0.0.1",
+			expectedResult: "0.0.1-rc",
+		},
+		{
+			testName:       "getVersion_WithoutPrelease_ShouldReturnVersionOnly",
+			prerelase:      "",
+			version:        "0.0.2",
+			expectedResult: "0.0.2",
+		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			main()
+		t.Run(tt.testName, func(t *testing.T) {
+			Version = tt.version
+			Prerelease = tt.prerelase
+			if got := getVersion(); got != tt.expectedResult {
+				t.Errorf("getVersion() = %v, expected %v", got, tt.expectedResult)
+			}
 		})
 	}
 }

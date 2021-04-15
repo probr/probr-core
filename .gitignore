@@ -8,3 +8,6 @@ probr_output
 servicepacks
 probr
 probr.exe
+
+# Test
+coverage.out

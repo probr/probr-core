@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -41,10 +42,10 @@ func main() {
 	}
 	switch subCommand {
 	case "list":
-		listServicePacks()
+		listServicePacks(os.Stdout)
 
 	case "version":
-		printVersion()
+		printVersion(os.Stdout)
 
 	default:
 		runServicePacks()
@@ -138,9 +139,7 @@ func runAllPlugins(cmdSet []*exec.Cmd) error {
 }
 
 //listServicePacks lists all service packs declared in config and checks if they are installed
-func listServicePacks() {
-
-	// TODO: Use a writer for output instead of fmt.Printf
+func listServicePacks(w io.Writer) {
 
 	declaredServicePacks, err := core.GetPackNameFromConfig()
 	if err != nil {
@@ -159,21 +158,21 @@ func listServicePacks() {
 	}
 
 	// Print output
-	fmt.Println("Listing all declared service packs... ")
-	fmt.Println("| Service Pack\t\t\t\t | Installed ")
+	fmt.Fprintln(w, "Listing all declared service packs... ")
+	fmt.Fprintln(w, "| Service Pack\t\t\t\t | Installed ")
 	for k, v := range servicePacks {
-		fmt.Println(fmt.Sprintf("| %s\t\t\t\t | %s", k, v))
+		fmt.Fprintln(w, fmt.Sprintf("| %s\t\t\t\t | %s", k, v))
 	}
 }
 
-func printVersion() {
-	// TODO: Use a writer for output instead of fmt.Printf
+func printVersion(w io.Writer) {
 
-	fmt.Printf("Probr Version: %s", getVersion())
-	fmt.Println()
-	fmt.Printf("Commit: %s", GitCommitHash)
+	fmt.Fprintf(w, "Probr Version: %s", getVersion())
+	fmt.Fprintln(w)
+	fmt.Fprintf(w, "Commit: %s", GitCommitHash)
 	//Ref: https://www.digitalocean.com/community/tutorials/using-ldflags-to-set-version-information-for-go-applications
 	// To set a version during build time: go build -o probr -ldflags="-X 'main.Version=0.12.0' -X 'main.Prerelease=rc' -X 'main.GitCommitHash=123456'"
+	// This could be used in a make file and/or in CI/CD pipeline (preferred)
 }
 
 func getVersion() string {

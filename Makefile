@@ -15,10 +15,7 @@ go-tidy:
 	@echo "  >  Tidying go.mod ..."
 	go mod tidy
 
-.PHONY: help
-all: help
-help: Makefile
-	@echo
-	@echo " Choose a command run in "$(PROJECTNAME)":"
-	@echo
-	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
+go-test-cov:
+	@echo "Running tests and generating coverage output"
+	@go test ./... -coverprofile coverage.out -covermode count
+	@echo "Current test coverage : $(shell go tool cover -func=coverage.out | grep total | grep -Eo '[0-9]+\.[0-9]+') %"
