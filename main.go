@@ -14,16 +14,30 @@ import (
 )
 
 var (
+	// Ref: https://www.digitalocean.com/community/tutorials/using-ldflags-to-set-version-information-for-go-applications
+	// Below are some examples for setting version during build time. This could be used in a make file and/or in CI/CD pipeline (preferred).
+	// Local dev:
+	//   > go build -o probr -ldflags="-X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
+	// Release candidate:
+	//   > go build -o probr -ldflags="-X 'main.Prerelease=rc' -X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
+	// Production release:
+	//   > go build -o probr -ldflags="-X 'main.Prerelease=' -X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
+	// Setting all version details inline:
+	//   > go build -o probr -ldflags="-X 'main.Version=0.14.0' -X 'main.Prerelease=rc' -X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
+
 	// Version is the main version number that is being run at the moment
-	Version = "0.0.0"
+	Version = "0.0.15"
 
 	// Prerelease is a marker for the version. If this is "" (empty string)
 	// then it means that it is a final release. Otherwise, this is a pre-release
-	// such as "dev" (in development), "beta", "rc1", etc.
+	// such as "dev" (in development), "beta", "rc", etc.
 	Prerelease = "dev"
 
-	// GitCommitHash shall be used to store commit id when building release
+	// GitCommitHash references the commit id at build time
 	GitCommitHash = ""
+
+	// BuiltAt is the build date
+	BuiltAt = ""
 )
 
 var packName, varsFile string
@@ -33,8 +47,9 @@ func main() {
 	// > probr list
 	flag.NewFlagSet("list", flag.ExitOnError)
 
-	// > probr version
-	flag.NewFlagSet("version", flag.ExitOnError)
+	// > probr version [-v]
+	versionCmd := flag.NewFlagSet("version", flag.ExitOnError)
+	verboseVersionFlag := versionCmd.Bool("v", false, "Display extended version information")
 
 	subCommand := ""
 	if len(os.Args) > 1 {
@@ -45,7 +60,8 @@ func main() {
 		listServicePacks(os.Stdout)
 
 	case "version":
-		printVersion(os.Stdout)
+		versionCmd.Parse(os.Args[2:])
+		printVersion(os.Stdout, *verboseVersionFlag)
 
 	default:
 		runServicePacks()
@@ -168,14 +184,15 @@ func listServicePacks(w io.Writer) {
 	}
 }
 
-func printVersion(w io.Writer) {
+func printVersion(w io.Writer, verbose bool) {
 
 	fmt.Fprintf(w, "Probr Version: %s", getVersion())
-	fmt.Fprintln(w)
-	fmt.Fprintf(w, "Commit: %s", GitCommitHash)
-	//Ref: https://www.digitalocean.com/community/tutorials/using-ldflags-to-set-version-information-for-go-applications
-	// To set a version during build time: go build -o probr -ldflags="-X 'main.Version=0.12.0' -X 'main.Prerelease=rc' -X 'main.GitCommitHash=123456'"
-	// This could be used in a make file and/or in CI/CD pipeline (preferred)
+	if verbose {
+		fmt.Fprintln(w)
+		fmt.Fprintf(w, "Commit       : %s", GitCommitHash)
+		fmt.Fprintln(w)
+		fmt.Fprintf(w, "Built at     : %s", BuiltAt)
+	}
 }
 
 func getVersion() string {
