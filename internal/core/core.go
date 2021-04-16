@@ -20,7 +20,6 @@ var logger hclog.Logger
 // Plugin hosts should use one Client for each plugin executable
 // (this is different from the client that manages gRPC)
 func NewClient(cmd *exec.Cmd) *hcplugin.Client {
-	// TODO: Move reusable code blocks to SDK, such as: GetPluginMap; GetHandshakeConfig;
 	logger = hclog.New(&hclog.LoggerOptions{
 		Name:   plugin.ServicePackPluginName,
 		Output: os.Stdout,
@@ -29,11 +28,7 @@ func NewClient(cmd *exec.Cmd) *hcplugin.Client {
 	var pluginMap = map[string]hcplugin.Plugin{
 		plugin.ServicePackPluginName: &plugin.ServicePackPlugin{},
 	}
-	var handshakeConfig = hcplugin.HandshakeConfig{
-		ProtocolVersion:  1,
-		MagicCookieKey:   "PROBR_MAGIC_COOKIE",
-		MagicCookieValue: "probr.servicepack",
-	}
+	var handshakeConfig = plugin.GetHandshakeConfig()
 	return hcplugin.NewClient(&hcplugin.ClientConfig{
 		HandshakeConfig: handshakeConfig,
 		Plugins:         pluginMap,
