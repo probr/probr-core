@@ -53,7 +53,6 @@ func SetupCloseHandler() {
 		<-c
 		log.Printf("Execution aborted - %v", "SIGTERM")
 		probeengine.CleanupTmp()
-		// TODO: Additional cleanup may be needed. For instance, any pods created during tests are not being dropped if aborted. Better call: probrengine.Cleanup()
 		os.Exit(0)
 	}()
 }
