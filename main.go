@@ -125,7 +125,10 @@ func runAllPlugins(cmdSet []*exec.Cmd) error {
 		} else {
 			log.Printf("[INFO] Probes all completed with successful results")
 		}
-		// TODO: Confirm how to handle long-running plugins, since this will block until finished. Potential time out.
+		// Confirmed this can handled long-running plugins
+		// It worked with simulated 30-second delay
+		// It worked with simulated 10-min delay
+		// It worked with simulated 30-min delay
 	}
 
 	if len(spErrors) > 0 {
