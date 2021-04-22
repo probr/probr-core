@@ -16,7 +16,8 @@ import (
 	cliflags "github.com/citihub/probr-sdk/cli_flags"
 )
 
-var binariesPath string
+// BinariesPath represents the path where service pack binaries are installed
+var BinariesPath string
 
 // ParseFlags ...
 func ParseFlags() {
@@ -26,7 +27,7 @@ func ParseFlags() {
 }
 
 func binariesPathHandler(v *string) {
-	binariesPath = *v // defaults to an empty string, no checks necessary
+	BinariesPath = *v // defaults to an empty string, no checks necessary
 }
 
 // GetCommands ...
@@ -70,13 +71,13 @@ func GetPackBinary(name string) (binaryName string, err error) {
 	if runtime.GOOS == "windows" && !strings.HasSuffix(name, ".exe") {
 		name = fmt.Sprintf("%s.exe", name)
 	}
-	if binariesPath == "" {
-		binariesPath = filepath.Join(userHomeDir(), "probr", "binaries") // TODO Load from config.
+	if BinariesPath == "" {
+		BinariesPath = filepath.Join(userHomeDir(), "probr", "binaries") // TODO Load from config.
 	}
-	binariesPath = strings.Replace(binariesPath, "~", userHomeDir(), 1)
-	plugins, _ := hcplugin.Discover(name, binariesPath)
+	BinariesPath = strings.Replace(BinariesPath, "~", userHomeDir(), 1)
+	plugins, _ := hcplugin.Discover(name, BinariesPath)
 	if len(plugins) != 1 {
-		err = fmt.Errorf("Please ensure requested plugin '%s' has been installed to '%s'", name, binariesPath)
+		err = fmt.Errorf("Please ensure requested plugin '%s' has been installed to '%s'", name, BinariesPath)
 		return
 	}
 	binaryName = plugins[0]
