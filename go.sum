@@ -28,8 +28,8 @@ github.com/briandowns/spinner v1.12.0 h1:72O0PzqGJb6G3KgrcIOtL/JAGGZ5ptOMCn9cUHm
 github.com/briandowns/spinner v1.12.0/go.mod h1:QOuQk7x+EaDASo80FEXwlwiA+j/PPIcX3FScO+3/ZPQ=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
-github.com/citihub/probr-sdk v0.0.17 h1:M0SsAla42AIAcilKxEadXZ5MBwRzEmYvRHiet/zHFXo=
-github.com/citihub/probr-sdk v0.0.17/go.mod h1:XADlJGAM8nuve31Rh3OdL9jJa0SpK0p77RWbXBmSOBM=
+github.com/citihub/probr-sdk v0.0.18 h1:PLAX/IpJ0jG956275vS8b2uzinDuZLOAwhxRgQDj+5c=
+github.com/citihub/probr-sdk v0.0.18/go.mod h1:XADlJGAM8nuve31Rh3OdL9jJa0SpK0p77RWbXBmSOBM=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/coreos/bbolt v1.3.2/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=
 github.com/coreos/etcd v3.3.13+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=
