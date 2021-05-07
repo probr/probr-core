@@ -4,14 +4,14 @@ AuditEnabled: true
 OverwriteHistoricalAudits: true
 Run: # must be all-lowercase
   - "kubernetes"
-  # - "storage"
 ServicePacks:
   Kubernetes:
+    TagInclusions:
+      # - k-gen
     KubeConfig: 
     KubeContext:
-    AuthorisedContainerRegistry: citihubprod.azurecr.io # required
-    UnauthorisedContainerRegistry: docker.io # required
-    ProbeImage: citihub/probr-probe
+    AuthorisedContainerImage: citihubprod.azurecr.io/citihub/probr-probe # required
+    UnauthorisedContainerImage: docker.io/citihub/probr-probe # required
     ContainerRequiredDropCapabilities:
       - NET_RAW
     SystemNamespace: kube-system
