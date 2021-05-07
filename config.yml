@@ -7,7 +7,7 @@ Run: # must be all-lowercase
 ServicePacks:
   Kubernetes:
     TagInclusions:
-      # - k-gen
+      - k-gen
     KubeConfig: 
     KubeContext:
     AuthorisedContainerImage: citihubprod.azurecr.io/citihub/probr-probe # required
@@ -16,21 +16,6 @@ ServicePacks:
       - NET_RAW
     SystemNamespace: kube-system
     DashboardPodNamePrefix: kubernetes-dashboard
-    # TODO: these exclusions are not being handled in the SP
-    Probes: # allows this pack's probes to be disabled by name
-      - Name: pod_security_policy
-        Excluded: "out"
-      - Name: iam
-        Excluded: out
-      - Name: general
-        Excluded:
-      - Name: container_registry_access
-        Excluded: "out"
-      - Name: internet_access
-        Excluded: "out"
-        Scenarios: # allows this probe's scenarios to be disabled using their probe tag value
-          - Name: "1.0"
-            Excluded: # "Excluded to demonstrate scenario exclusion option"
   Storage:
     Provider: Azure # if object OR required vars within it are omitted, pack will not be included
 CloudProviders:
