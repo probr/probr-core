@@ -50,8 +50,6 @@ func GetCommands() (cmdSet []*exec.Cmd, err error) {
 		}
 		cmd := exec.Command(binaryName)
 		cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", configPath))
-		// cmd.Args = append(cmd.Args, "--tags='@k-gen'")
-		cmd.Args = append(cmd.Args, "--loglevel=DEBUG")
 		cmdSet = append(cmdSet, cmd)
 	}
 	return
