@@ -75,12 +75,6 @@ func runServicePacks() {
 	// Setup for handling SIGTERM (Ctrl+C)
 	core.SetupCloseHandler()
 
-	core.ParseFlags()
-	// if err != nil {
-	// 	log.Printf("Error parsing flags from command line: %s", err)
-	// 	os.Exit(2)
-	// }
-
 	cmdSet, err := core.GetCommands()
 	if err != nil {
 		log.Printf("Error loading plugins from config: %s", err)
