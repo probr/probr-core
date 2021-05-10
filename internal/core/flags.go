@@ -10,21 +10,13 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/citihub/probr-sdk/config"
 	hcplugin "github.com/hashicorp/go-plugin"
 
-	cliflags "github.com/citihub/probr-sdk/cli_flags"
+	"github.com/citihub/probr-sdk/config"
 )
 
 // BinariesPath represents the path where service pack binaries are installed
 var BinariesPath string
-
-// ParseFlags ...
-func ParseFlags() {
-	var flags cliflags.Flags
-	flags.NewStringFlag("binaries-path", "Location for service pack binaries. If not provided, default value is: [UserHomeDir]/probr/binaries", binariesPathHandler)
-	flags.ExecuteHandlers()
-}
 
 func binariesPathHandler(v *string) {
 	BinariesPath = *v // defaults to an empty string, no checks necessary
@@ -83,29 +75,36 @@ func GetPackBinary(name string) (binaryName string, err error) {
 	return
 }
 
-func getConfigPath() (configPath string, err error) {
+func getConfigPath() (string, error) {
 	workDir, err := os.Getwd()
 	if err != nil {
-		return
+		return "", err
 	}
-	configPath = filepath.Join(workDir, "config.yml")
-
-	return
+	return filepath.Join(workDir, "config.yml"), nil
 }
 
 // GetPackNameFromConfig returns all service packs declared in config file
 func GetPackNameFromConfig() (packNames []string, err error) {
+	type simpleVars struct {
+		Run []string `yaml:"Run"`
+	}
+	var vars simpleVars
+
 	configPath, err := getConfigPath()
 	if err != nil {
 		return
 	}
 
-	err = config.Init(configPath)
+	configDecoder, file, err := config.NewConfigDecoder(configPath)
 	if err != nil {
 		return
 	}
 
-	packNames = config.Vars.Run
-
+	err = configDecoder.Decode(&vars)
+	file.Close()
+	packNames = vars.Run
+	log.Printf("Found packs %v in config file: %s", packNames, configPath)
 	return
 }
+
+// TODO: Seems like these functions could use with some topical reorganization
