@@ -19,19 +19,19 @@ var (
 	// Local dev:
 	//   > go build -o probr -ldflags="-X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
 	// Release candidate:
-	//   > go build -o probr -ldflags="-X 'main.Prerelease=rc' -X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
+	//   > go build -o probr -ldflags="-X 'main.VersionPostfix=rc' -X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
 	// Production release:
-	//   > go build -o probr -ldflags="-X 'main.Prerelease=' -X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
+	//   > go build -o probr -ldflags="-X 'main.VersionPostfix=' -X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
 	// Setting all version details inline:
-	//   > go build -o probr -ldflags="-X 'main.Version=0.14.0' -X 'main.Prerelease=rc' -X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
+	//   > go build -o probr -ldflags="-X 'main.Version=0.14.0' -X 'main.VersionPostfix=rc' -X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
 
 	// Version is the main version number that is being run at the moment
 	Version = "0.0.15"
 
-	// Prerelease is a marker for the version. If this is "" (empty string)
+	// VersionPostfix is a marker for the version. If this is "" (empty string)
 	// then it means that it is a final release. Otherwise, this is a pre-release
 	// such as "dev" (in development), "beta", "rc", etc.
-	Prerelease = "dev"
+	VersionPostfix = "dev"
 
 	// GitCommitHash references the commit id at build time
 	GitCommitHash = ""
@@ -194,8 +194,8 @@ func printVersion(w io.Writer, verbose bool) {
 }
 
 func getVersion() string {
-	if Prerelease != "" {
-		return fmt.Sprintf("%s-%s", Version, Prerelease)
+	if VersionPostfix != "" {
+		return fmt.Sprintf("%s-%s", Version, VersionPostfix)
 	}
 	return Version
 }
