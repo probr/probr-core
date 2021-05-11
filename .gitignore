@@ -8,6 +8,7 @@ probr_output
 servicepacks
 probr
 probr.exe
+probr-darwin
 
 # Test
 coverage.out

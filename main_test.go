@@ -13,13 +13,13 @@ func Test_getVersion(t *testing.T) {
 	}{
 		// Test cases
 		{
-			testName:       "getVersion_WithDevPrelease_ShouldReturnVersionAndPrerelease",
+			testName:       "getVersion_WithDevPrelease_ShouldReturnVersionAndVersionPostfix",
 			prerelase:      "dev",
 			version:        "0.0.0",
 			expectedResult: "0.0.0-dev",
 		},
 		{
-			testName:       "getVersion_WithRCPrelease_ShouldReturnVersionAndPrerelease",
+			testName:       "getVersion_WithRCPrelease_ShouldReturnVersionAndVersionPostfix",
 			prerelase:      "rc",
 			version:        "0.0.1",
 			expectedResult: "0.0.1-rc",
@@ -34,7 +34,7 @@ func Test_getVersion(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.testName, func(t *testing.T) {
 			Version = tt.version
-			Prerelease = tt.prerelase
+			VersionPostfix = tt.prerelase
 			if got := getVersion(); got != tt.expectedResult {
 				t.Errorf("getVersion() = %v, expected %v", got, tt.expectedResult)
 			}
