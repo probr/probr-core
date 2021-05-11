@@ -16,11 +16,8 @@ import (
 )
 
 // BinariesPath represents the path where service pack binaries are installed
-var BinariesPath string
-
-func binariesPathHandler(v *string) {
-	BinariesPath = *v // defaults to an empty string, no checks necessary
-}
+// Must be a pointer to accept the flag when it is set
+var BinariesPath *string
 
 // GetCommands ...
 func GetCommands() (cmdSet []*exec.Cmd, err error) {
@@ -61,13 +58,13 @@ func GetPackBinary(name string) (binaryName string, err error) {
 	if runtime.GOOS == "windows" && !strings.HasSuffix(name, ".exe") {
 		name = fmt.Sprintf("%s.exe", name)
 	}
-	if BinariesPath == "" {
-		BinariesPath = filepath.Join(userHomeDir(), "probr", "binaries") // TODO Load from config.
+	if *BinariesPath == "" {
+		*BinariesPath = filepath.Join(userHomeDir(), "probr", "binaries") // TODO Load from config.
 	}
-	BinariesPath = strings.Replace(BinariesPath, "~", userHomeDir(), 1)
-	plugins, _ := hcplugin.Discover(name, BinariesPath)
+	*BinariesPath = strings.Replace(*BinariesPath, "~", userHomeDir(), 1)
+	plugins, _ := hcplugin.Discover(name, *BinariesPath)
 	if len(plugins) != 1 {
-		err = fmt.Errorf("Please ensure requested plugin '%s' has been installed to '%s'", name, BinariesPath)
+		err = fmt.Errorf("Please ensure requested plugin '%s' has been installed to '%s'", name, *BinariesPath)
 		return
 	}
 	binaryName = plugins[0]

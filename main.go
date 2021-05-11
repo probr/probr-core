@@ -45,11 +45,11 @@ var packName, varsFile string
 func main() {
 
 	// > probr list [-binaries-path]
-	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
-	binaryPathFlag := listCmd.String("binaries-path", "", "Location for service pack binaries. If not provided, default value is: [UserHomeDir]/probr/binaries")
+	coreCmd := flag.NewFlagSet("probr", flag.ExitOnError)
+	core.BinariesPath = coreCmd.String("binaries-path", "", "Location for service pack binaries. If not provided, default value is: [UserHomeDir]/probr/binaries")
 
 	// > probr version [-v]
-	versionCmd := flag.NewFlagSet("version", flag.ExitOnError)
+	versionCmd := flag.NewFlagSet("probr version", flag.ExitOnError)
 	verboseVersionFlag := versionCmd.Bool("v", false, "Display extended version information")
 
 	subCommand := ""
@@ -58,14 +58,15 @@ func main() {
 	}
 	switch subCommand {
 	case "list":
-		listCmd.Parse(os.Args[2:])
-		listServicePacks(os.Stdout, *binaryPathFlag)
+		coreCmd.Parse(os.Args[2:])
+		listServicePacks(os.Stdout)
 
 	case "version":
 		versionCmd.Parse(os.Args[2:])
 		printVersion(os.Stdout, *verboseVersionFlag)
 
 	default:
+		coreCmd.Parse(os.Args[1:])
 		runServicePacks()
 	}
 	// Ref for handling cli subcommands: https://gobyexample.com/command-line-subcommands
@@ -154,14 +155,12 @@ func runAllPlugins(cmdSet []*exec.Cmd) error {
 }
 
 //listServicePacks lists all service packs declared in config and checks if they are installed
-func listServicePacks(w io.Writer, path string) {
+func listServicePacks(w io.Writer) {
 
 	declaredServicePacks, err := core.GetPackNameFromConfig()
 	if err != nil {
 		log.Fatalf("An error occurred while retriveing service packs from config: %v", err)
 	}
-
-	core.BinariesPath = path
 
 	servicePacks := make(map[string]string)
 
