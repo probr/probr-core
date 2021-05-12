@@ -12,6 +12,7 @@ import (
 	hcplugin "github.com/hashicorp/go-plugin"
 
 	"github.com/citihub/probr-sdk/config"
+	"github.com/citihub/probr-sdk/utils"
 )
 
 // BinariesPath represents the path where service pack binaries are installed
@@ -45,6 +46,9 @@ func GetCommands() (cmdSet []*exec.Cmd, err error) {
 		cmd := exec.Command(binaryName)
 		cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", configPath))
 		cmdSet = append(cmdSet, cmd)
+	}
+	if err == nil && len(cmdSet) == 0 {
+		err = utils.ReformatError("No valid service packs specified")
 	}
 	return
 }
