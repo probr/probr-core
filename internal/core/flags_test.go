@@ -15,7 +15,7 @@ func Test_userHomeDir(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			value := userHomeDir()
+			value := UserHomeDir()
 			if reflect.TypeOf(value) != reflect.TypeOf("a string") {
 				t.Errorf("userHomeDir() should always return a string")
 			}

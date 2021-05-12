@@ -1,29 +1,20 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
+	"text/tabwriter"
 
 	"github.com/citihub/probr-sdk/plugin"
 
 	"github.com/citihub/probr-core/internal/core"
+	"github.com/citihub/probr-core/internal/flags"
 )
 
 var (
-	// Ref: https://www.digitalocean.com/community/tutorials/using-ldflags-to-set-version-information-for-go-applications
-	// Below are some examples for setting version during build time. This could be used in a make file and/or in CI/CD pipeline (preferred).
-	// Local dev:
-	//   > go build -o probr -ldflags="-X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
-	// Release candidate:
-	//   > go build -o probr -ldflags="-X 'main.VersionPostfix=rc' -X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
-	// Production release:
-	//   > go build -o probr -ldflags="-X 'main.VersionPostfix=' -X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
-	// Setting all version details inline:
-	//   > go build -o probr -ldflags="-X 'main.Version=0.14.0' -X 'main.VersionPostfix=rc' -X 'main.GitCommitHash=`git rev-parse --short HEAD`' -X 'main.BuiltAt=`date +%FT%T%z`'"
+	// See Makefile for more on how this package is built
 
 	// Version is the main version number that is being run at the moment
 	Version = "0.0.15"
@@ -40,36 +31,26 @@ var (
 	BuiltAt = ""
 )
 
-var packName, varsFile string
-
 func main() {
 
-	// > probr list [-binaries-path]
-	coreCmd := flag.NewFlagSet("probr", flag.ExitOnError)
-	core.BinariesPath = coreCmd.String("binaries-path", "", "Location for service pack binaries. If not provided, default value is: [UserHomeDir]/probr/binaries")
-
-	// > probr version [-v]
-	versionCmd := flag.NewFlagSet("probr version", flag.ExitOnError)
-	verboseVersionFlag := versionCmd.Bool("v", false, "Display extended version information")
-
-	subCommand := ""
+	var subCommand string
 	if len(os.Args) > 1 {
 		subCommand = os.Args[1]
 	}
 	switch subCommand {
+	// Ref: https://gobyexample.com/command-line-subcommands
 	case "list":
-		coreCmd.Parse(os.Args[2:])
-		listServicePacks(os.Stdout)
+		flags.List.Parse(os.Args[2:])
+		listServicePacks()
 
 	case "version":
-		versionCmd.Parse(os.Args[2:])
-		printVersion(os.Stdout, *verboseVersionFlag)
+		flags.Version.Parse(os.Args[2:])
+		printVersion()
 
 	default:
-		coreCmd.Parse(os.Args[1:])
+		flags.Core.Parse(os.Args[1:])
 		runServicePacks()
 	}
-	// Ref for handling cli subcommands: https://gobyexample.com/command-line-subcommands
 }
 
 func runServicePacks() {
@@ -155,40 +136,39 @@ func runAllPlugins(cmdSet []*exec.Cmd) error {
 }
 
 //listServicePacks lists all service packs declared in config and checks if they are installed
-func listServicePacks(w io.Writer) {
+func listServicePacks() {
 
-	declaredServicePacks, err := core.GetPackNameFromConfig()
+	servicePackNames, err := core.GetPackNames()
 	if err != nil {
 		log.Fatalf("An error occurred while retriveing service packs from config: %v", err)
 	}
 
 	servicePacks := make(map[string]string)
-
-	for _, pack := range declaredServicePacks {
-		_, binErr := core.GetPackBinary(pack)
+	for _, pack := range servicePackNames {
+		binaryName, binErr := core.GetPackBinary(pack)
 		if binErr != nil {
-			servicePacks[pack] = fmt.Sprintf("ERROR: %v", binErr)
+			servicePacks[binaryName] = fmt.Sprintf("ERROR: %v", binErr)
 		} else {
-			servicePacks[pack] = "OK"
+			servicePacks[binaryName] = "OK"
 		}
 	}
 
 	// Print output
-	fmt.Fprintln(w, "Listing all declared service packs... ")
-	fmt.Fprintln(w, "| Service Pack\t\t\t\t | Installed ")
+	writer := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+	fmt.Fprintln(writer, "| Service Pack\t | Installed ")
 	for k, v := range servicePacks {
-		fmt.Fprintln(w, fmt.Sprintf("| %s\t\t\t\t | %s", k, v))
+		fmt.Fprintln(writer, fmt.Sprintf("| %s\t | %s", k, v))
 	}
+	writer.Flush()
 }
 
-func printVersion(w io.Writer, verbose bool) {
-
-	fmt.Fprintf(w, "Probr Version: %s", getVersion())
-	if verbose {
-		fmt.Fprintln(w)
-		fmt.Fprintf(w, "Commit       : %s", GitCommitHash)
-		fmt.Fprintln(w)
-		fmt.Fprintf(w, "Built at     : %s", BuiltAt)
+func printVersion() {
+	fmt.Fprintf(os.Stdout, "Probr Version: %s", getVersion())
+	if core.Verbose != nil && *core.Verbose {
+		fmt.Fprintln(os.Stdout)
+		fmt.Fprintf(os.Stdout, "Commit       : %s", GitCommitHash)
+		fmt.Fprintln(os.Stdout)
+		fmt.Fprintf(os.Stdout, "Built at     : %s", BuiltAt)
 	}
 }
 

@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -19,6 +18,12 @@ import (
 // Must be a pointer to accept the flag when it is set
 var BinariesPath *string
 
+// Verbose is a CLI option to increase output detail
+var Verbose *bool
+
+// AllPacks is a CLI option to target all installed packs, instead of just those specified in config.yml
+var AllPacks *bool
+
 // GetCommands ...
 func GetCommands() (cmdSet []*exec.Cmd, err error) {
 	// TODO: give any exec errors a familiar format
@@ -26,7 +31,7 @@ func GetCommands() (cmdSet []*exec.Cmd, err error) {
 	if err != nil {
 		return
 	}
-	packNames, err := GetPackNameFromConfig()
+	packNames, err := GetPackNames()
 	if err != nil {
 		return
 	}
@@ -44,30 +49,29 @@ func GetCommands() (cmdSet []*exec.Cmd, err error) {
 	return
 }
 
-func userHomeDir() string {
-	user, err := user.Current()
+// UserHomeDir provides the OS-aware user home directory
+// TODO: move this to SDK
+func UserHomeDir() string {
+	dirname, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-	return user.HomeDir
+	return dirname
 }
 
 // GetPackBinary finds provided service pack in installation folder and return binary name
 func GetPackBinary(name string) (binaryName string, err error) {
-	name = strings.ToLower(name)
+	name = filepath.Base(strings.ToLower(name)) // in some cases a filepath may arrive here instead of the base name
 	if runtime.GOOS == "windows" && !strings.HasSuffix(name, ".exe") {
 		name = fmt.Sprintf("%s.exe", name)
 	}
-	if *BinariesPath == "" {
-		*BinariesPath = filepath.Join(userHomeDir(), "probr", "binaries") // TODO Load from config.
-	}
-	*BinariesPath = strings.Replace(*BinariesPath, "~", userHomeDir(), 1)
+	*BinariesPath = strings.Replace(*BinariesPath, "~", UserHomeDir(), 1)
 	plugins, _ := hcplugin.Discover(name, *BinariesPath)
 	if len(plugins) != 1 {
-		err = fmt.Errorf("Please ensure requested plugin '%s' has been installed to '%s'", name, *BinariesPath)
+		err = fmt.Errorf("failed to locate requested plugin '%s'", name)
 		return
 	}
-	binaryName = plugins[0]
+	binaryName = filepath.Base(plugins[0])
 
 	return
 }
@@ -80,8 +84,12 @@ func getConfigPath() (string, error) {
 	return filepath.Join(workDir, "config.yml"), nil
 }
 
-// GetPackNameFromConfig returns all service packs declared in config file
-func GetPackNameFromConfig() (packNames []string, err error) {
+// GetPackNames returns all service packs declared in config file
+func GetPackNames() (packNames []string, err error) {
+	if AllPacks != nil && *AllPacks {
+		return hcplugin.Discover("*", *BinariesPath)
+	}
+
 	type simpleVars struct {
 		Run []string `yaml:"Run"`
 	}
@@ -100,7 +108,6 @@ func GetPackNameFromConfig() (packNames []string, err error) {
 	err = configDecoder.Decode(&vars)
 	file.Close()
 	packNames = vars.Run
-	log.Printf("Found packs %v in config file: %s", packNames, configPath)
 	return
 }
 

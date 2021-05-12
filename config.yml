@@ -7,7 +7,7 @@ Run: # must be all-lowercase
 ServicePacks:
   Kubernetes:
     TagInclusions:
-      #- k-gen
+      #- k-pod
     KubeConfig: 
     KubeContext:
     AuthorisedContainerImage: citihubprod.azurecr.io/citihub/probr-probe # required
