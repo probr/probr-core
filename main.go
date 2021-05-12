@@ -49,11 +49,11 @@ func main() {
 
 	default:
 		flags.Core.Parse(os.Args[1:])
-		runServicePacks()
+		run()
 	}
 }
 
-func runServicePacks() {
+func run() {
 	// Setup for handling SIGTERM (Ctrl+C)
 	core.SetupCloseHandler()
 
@@ -63,20 +63,11 @@ func runServicePacks() {
 		os.Exit(2)
 	}
 
-	totalCount := len(cmdSet)
-	if totalCount == 0 {
-		log.Print("No service pack found in config")
-		return
-	}
-
 	// Run all plugins
-	//  exit 2 on internal error
-	//  exit 1 on service pack error(s)
-	//  exit 0 on success
 	if err := runAllPlugins(cmdSet); err != nil {
 		switch e := err.(type) {
 		case *core.ServicePackErrors:
-			log.Printf("Test Failures: %d out of %d test service packs failed", len(e.SPErrs), totalCount)
+			log.Printf("Test Failures: %d out of %d test service packs failed", len(e.SPErrs), len(cmdSet))
 			log.Printf("Failed service packs: %v", e.SPErrs)
 			os.Exit(1) // At least one service pack failed
 		default:
@@ -84,45 +75,18 @@ func runServicePacks() {
 			os.Exit(2) // Internal error
 		}
 	}
+	log.Printf("Success")
+	os.Exit(0)
 }
 
-func runAllPlugins(cmdSet []*exec.Cmd) error {
-	var err error
-	spErrors := make([]core.ServicePackError, 0) // Intialize collection to store any service pack error received during plugin execution
+func runAllPlugins(cmdSet []*exec.Cmd) (err error) {
+	spErrors := make([]core.ServicePackError, 0) // This will store any plugin errors received during execution
 
 	for _, cmd := range cmdSet {
-		// Launch the plugin process
-		client := core.NewClient(cmd)
-		defer client.Kill()
-
-		// Connect via RPC
-		rpcClient, err := client.Client()
+		spErrors, err = runPlugin(cmd, spErrors)
 		if err != nil {
-			return err
+			return
 		}
-
-		// Request the plugin
-		rawSP, err := rpcClient.Dispense(plugin.ServicePackPluginName)
-		if err != nil {
-			return err
-		}
-		// We should have a ServicePack now! This feels like a normal interface
-		// implementation but is in fact over an RPC connection.
-		servicePack := rawSP.(plugin.ServicePack)
-		result := servicePack.RunProbes()
-		if result != nil {
-			spErr := &core.ServicePackError{
-				ServicePack: cmd.String(),
-				Err:         result,
-			}
-			spErrors = append(spErrors, *spErr)
-		} else {
-			log.Printf("[INFO] Probes all completed with successful results")
-		}
-		// Confirmed this can handled long-running plugins
-		// It worked with simulated 30-second delay
-		// It worked with simulated 10-min delay
-		// It worked with simulated 30-min delay
 	}
 
 	if len(spErrors) > 0 {
@@ -131,8 +95,39 @@ func runAllPlugins(cmdSet []*exec.Cmd) error {
 			SPErrs: spErrors,
 		}
 	}
+	return
+}
 
-	return err
+func runPlugin(cmd *exec.Cmd, spErrors []core.ServicePackError) ([]core.ServicePackError, error) {
+	// Launch the plugin process
+	client := core.NewClient(cmd)
+	defer client.Kill()
+
+	// Connect via RPC
+	rpcClient, err := client.Client()
+	if err != nil {
+		return spErrors, err
+	}
+
+	// Request the plugin
+	rawSP, err := rpcClient.Dispense(plugin.ServicePackPluginName)
+	if err != nil {
+		return spErrors, err
+	}
+
+	// Execute service pack, expecting a silent response
+	servicePack := rawSP.(plugin.ServicePack)
+	response := servicePack.RunProbes()
+	if response != nil {
+		spErr := core.ServicePackError{
+			ServicePack: cmd.String(), // TODO: retrieve service pack name from interface function
+			Err:         response,
+		}
+		spErrors = append(spErrors, spErr)
+	} else {
+		log.Printf("[INFO] Probes all completed with successful results")
+	}
+	return spErrors, nil
 }
 
 //listServicePacks lists all service packs declared in config and checks if they are installed
@@ -157,7 +152,7 @@ func listServicePacks() {
 	writer := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
 	fmt.Fprintln(writer, "| Service Pack\t | Installed ")
 	for k, v := range servicePacks {
-		fmt.Fprintln(writer, fmt.Sprintf("| %s\t | %s", k, v))
+		fmt.Fprintf(writer, "| %s\t | %s\n", k, v)
 	}
 	writer.Flush()
 }
