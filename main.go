@@ -49,7 +49,7 @@ func main() {
 		printVersion()
 
 	default:
-		flags.Core.Parse(os.Args[1:])
+		flags.Run.Parse(os.Args[1:])
 		run()
 	}
 }
@@ -131,7 +131,7 @@ func runPlugin(cmd *exec.Cmd, spErrors []core.ServicePackError) ([]core.ServiceP
 	return spErrors, nil
 }
 
-//listServicePacks lists all service packs declared in config and checks if they are installed
+// listServicePacks lists all service packs declared in config and checks if they are installed
 func listServicePacks() {
 
 	servicePackNames, err := core.GetPackNames()

@@ -7,19 +7,19 @@ import (
 	"github.com/citihub/probr-core/internal/core"
 )
 
-// Core relates to the primary probr execution
-var Core *flag.FlagSet
+// Run flags relate to the primary probr execution
+var Run *flag.FlagSet
 
-// List allows users to view their installed binaries
+// List flags manage the view of installed binaries
 var List *flag.FlagSet
 
-// Version displays information about this probr core installation
+// Version flags relate to the version information for this probr installation
 var Version *flag.FlagSet
 
 func init() {
-	Core = flag.NewFlagSet("probr", flag.ExitOnError)
-	addBinariesFlag(Core)
-	addAllFlag(Core)
+	Run = flag.NewFlagSet("probr", flag.ExitOnError)
+	addBinariesFlag(Run)
+	addAllFlag(Run)
 
 	List = flag.NewFlagSet("probr list", flag.ExitOnError)
 	addBinariesFlag(List)
