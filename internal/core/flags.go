@@ -75,7 +75,7 @@ func GetPackBinary(name string) (binaryName string, err error) {
 		err = fmt.Errorf("failed to locate requested plugin '%s'", name)
 		return
 	}
-	binaryName = filepath.Base(plugins[0])
+	binaryName = plugins[0]
 
 	return
 }

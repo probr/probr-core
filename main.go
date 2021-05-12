@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"text/tabwriter"
 
 	"github.com/citihub/probr-sdk/plugin"
@@ -140,7 +141,8 @@ func listServicePacks() {
 
 	servicePacks := make(map[string]string)
 	for _, pack := range servicePackNames {
-		binaryName, binErr := core.GetPackBinary(pack)
+		binaryPath, binErr := core.GetPackBinary(pack)
+		binaryName := filepath.Base(binaryPath)
 		if binErr != nil {
 			servicePacks[binaryName] = fmt.Sprintf("ERROR: %v", binErr)
 		} else {
