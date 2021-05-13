@@ -131,10 +131,10 @@ func getConfigPath() (string, error) {
 
 // GetPackNames returns all service packs declared in config file
 func GetPackNames() (packNames []string, err error) {
-	if AllPacks != nil && *AllPacks {
+	packNames, err = getPackNamesFromConfig()
+	if err != nil || (AllPacks != nil && *AllPacks) {
 		return hcplugin.Discover("*", *BinariesPath)
 	}
-	packNames, err = getPackNamesFromConfig()
 	return
 }
 
