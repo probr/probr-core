@@ -8,17 +8,17 @@ import (
 	"path/filepath"
 	"text/tabwriter"
 
-	"github.com/citihub/probr-sdk/plugin"
+	"github.com/probr/probr-sdk/plugin"
 
-	"github.com/citihub/probr-core/internal/core"
-	"github.com/citihub/probr-core/internal/flags"
+	"github.com/probr/probr/internal/core"
+	"github.com/probr/probr/internal/flags"
 )
 
 var (
 	// See Makefile for more on how this package is built
 
 	// Version is the main version number that is being run at the moment
-	Version = "0.0.15"
+	Version = "0.1.0"
 
 	// VersionPostfix is a marker for the version. If this is "" (empty string)
 	// then it means that it is a final release. Otherwise, this is a pre-release
