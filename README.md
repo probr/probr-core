@@ -51,7 +51,7 @@ Configuration variables can be populated in one of four ways, with the value bei
 1. Vars file; yaml (highest non-CLI priority)
 1. CLI flags; see `./probr --help` for available flags (highest priority)
 
-See `config.yml` in this repository for an example of configuring Probr.  If you just want to try it out then the defaults will usually be sufficient.
+See `example-config.yml` in this repository for an example of configuring Probr.  If you just want to try it out then the defaults will usually be sufficient.
 
 _Note: Different service packs have different requirements, Please see individual service pack documentation for information on the required and default configuations for those packs._
 
@@ -87,13 +87,13 @@ If you would like to handle logic differently per environment, env vars may be u
 
 ### Vars File
 
-An example Vars file is available at [./examples/config.yml](./examples/config.yml).
+An example Vars file is available in [example-config.yml](./example-config.yml).
 You may have as many vars files as you wish in your codebase, which will enable you to maintain configurations for multiple environments in a single codebase.
 
 The location of the vars file is passed as a CLI option e.g.
 
 ```sh
-./probr --varsFile=./config-dev.yml
+./probr --config-file=./config-dev.yml
 ```
 
 ## Development & Contributing
