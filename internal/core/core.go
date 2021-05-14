@@ -11,18 +11,20 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/citihub/probr-sdk/config"
-	"github.com/citihub/probr-sdk/plugin"
-	"github.com/citihub/probr-sdk/probeengine"
-	"github.com/citihub/probr-sdk/utils"
+	"github.com/probr/probr-sdk/config"
+	"github.com/probr/probr-sdk/plugin"
+	"github.com/probr/probr-sdk/probeengine"
+	"github.com/probr/probr-sdk/utils"
 
 	hclog "github.com/hashicorp/go-hclog"
 	hcplugin "github.com/hashicorp/go-plugin"
 )
 
 // BinariesPath represents the path where service pack binaries are installed
-// Must be a pointer to accept the flag when it is set
 var BinariesPath *string
+
+// ConfigPath is the location that probr will use to retrieve config vars
+var ConfigPath *string
 
 // Verbose is a CLI option to increase output detail
 var Verbose *bool
@@ -69,10 +71,6 @@ func SetupCloseHandler() {
 // GetCommands ...
 func GetCommands() (cmdSet []*exec.Cmd, err error) {
 	// TODO: give any exec errors a familiar format
-	configPath, err := getConfigPath()
-	if err != nil {
-		return
-	}
 	packNames, err := GetPackNames()
 	if err != nil {
 		return
@@ -85,7 +83,7 @@ func GetCommands() (cmdSet []*exec.Cmd, err error) {
 			break
 		}
 		cmd := exec.Command(binaryName)
-		cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", configPath))
+		cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", *ConfigPath))
 		cmdSet = append(cmdSet, cmd)
 	}
 	if err == nil && len(cmdSet) == 0 {
@@ -121,14 +119,6 @@ func GetPackBinary(name string) (binaryName string, err error) {
 	return
 }
 
-func getConfigPath() (string, error) {
-	workDir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(workDir, "config.yml"), nil
-}
-
 // GetPackNames returns all service packs declared in config file
 func GetPackNames() (packNames []string, err error) {
 	packNames, err = getPackNamesFromConfig()
@@ -144,12 +134,7 @@ func getPackNamesFromConfig() ([]string, error) {
 	}
 	var vars simpleVars
 
-	configPath, err := getConfigPath()
-	if err != nil {
-		return nil, err
-	}
-
-	configDecoder, file, err := config.NewConfigDecoder(configPath)
+	configDecoder, file, err := config.NewConfigDecoder(*ConfigPath)
 	if err != nil {
 		return nil, err
 	}

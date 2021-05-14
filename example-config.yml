@@ -1,6 +1,6 @@
 # Empty and omitted keys will use default values
 AuditEnabled: true
-#WriteDirectory: out
+WriteDirectory:
 OverwriteHistoricalAudits: true
 Run: # must be all-lowercase
   - "kubernetes"
@@ -8,6 +8,8 @@ ServicePacks:
   Kubernetes:
     TagInclusions:
       #- k-pod
+    TagExclusions:
+      - k-iam
     KubeConfig: 
     KubeContext:
     AuthorisedContainerImage: citihubprod.azurecr.io/citihub/probr-probe # required
@@ -30,5 +32,3 @@ CloudProviders:
     Identity:
       DefaultNamespaceAI:
       DefaultNamespaceAIB:
-Tags: # allows user to create their own string of tag inclusions and/or exclusions
-TagExclusions: # allows specific controls/scenarios to be disabled via a list of tags

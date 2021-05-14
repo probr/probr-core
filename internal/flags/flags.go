@@ -2,9 +2,10 @@ package flags
 
 import (
 	"flag"
+	"os"
 	"path/filepath"
 
-	"github.com/citihub/probr-core/internal/core"
+	"github.com/probr/probr/internal/core"
 )
 
 // Run flags relate to the primary probr execution
@@ -18,6 +19,7 @@ var Version *flag.FlagSet
 
 func init() {
 	Run = flag.NewFlagSet("probr", flag.ExitOnError)
+	core.ConfigPath = Run.String("config-file", defaultConfigPath(), "Location for service pack binaries.")
 	addBinariesFlag(Run)
 	addAllFlag(Run)
 
@@ -30,7 +32,7 @@ func init() {
 }
 
 func addBinariesFlag(flagSet *flag.FlagSet) {
-	core.BinariesPath = flagSet.String("binaries-path", filepath.Join(core.UserHomeDir(), "probr", "binaries"), "Location for service pack binaries. If not provided, default value is: [UserHomeDir]/probr/binaries")
+	core.BinariesPath = flagSet.String("binaries-path", filepath.Join(core.UserHomeDir(), "probr", "binaries"), "Location for service pack binaries.")
 }
 
 func addVerboseFlag(flagSet *flag.FlagSet) {
@@ -38,5 +40,13 @@ func addVerboseFlag(flagSet *flag.FlagSet) {
 }
 
 func addAllFlag(flagSet *flag.FlagSet) {
-	core.AllPacks = flagSet.Bool("all", false, "Include all installed packs, not just those specified within config.yml")
+	core.AllPacks = flagSet.Bool("all", false, "Include all installed packs, not just those specified within the provided config")
+}
+
+func defaultConfigPath() string {
+	workDir, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(workDir, "config.yml")
 }
