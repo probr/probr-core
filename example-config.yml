@@ -1,17 +1,15 @@
 # Empty and omitted keys will use default values
-AuditEnabled: true
+InstallDir: cmd
 WriteDirectory:
-OverwriteHistoricalAudits: true
 Run: # must be all-lowercase
   - "kubernetes"
+  # - "storage"
 ServicePacks:
   Kubernetes:
     TagInclusions:
-      #- k-pod
+    #- k-pod
     TagExclusions:
       - k-iam
-    KubeConfig: 
-    KubeContext:
     AuthorisedContainerImage: citihubprod.azurecr.io/citihub/probr-probe # required
     UnauthorisedContainerImage: docker.io/citihub/probr-probe # required
     ContainerRequiredDropCapabilities:
