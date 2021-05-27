@@ -7,13 +7,12 @@ Run: # must be all-lowercase
 ServicePacks:
   Kubernetes:
     TagInclusions:
-    #- k-pod
+      #- k-pod
     TagExclusions:
-      - k-iam
+    KubeConfig:
+    KubeContext:
     AuthorisedContainerImage: citihubprod.azurecr.io/citihub/probr-probe # required
     UnauthorisedContainerImage: docker.io/citihub/probr-probe # required
-    ContainerRequiredDropCapabilities:
-      - NET_RAW
     SystemNamespace: kube-system
     DashboardPodNamePrefix: kubernetes-dashboard
   Storage:
