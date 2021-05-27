@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/probr/probr/internal/config"
 	"github.com/probr/probr/internal/core"
 )
 
@@ -19,20 +20,21 @@ var Version *flag.FlagSet
 
 func init() {
 	Run = flag.NewFlagSet("probr", flag.ExitOnError)
-	core.ConfigPath = Run.String("config-file", defaultConfigPath(), "Location for service pack binaries.")
-	addBinariesFlag(Run)
+	List = flag.NewFlagSet("probr list", flag.ExitOnError)
+	Version = flag.NewFlagSet("probr version", flag.ExitOnError)
+
+	config.Vars.Init()
+
 	addAllFlag(Run)
 
-	List = flag.NewFlagSet("probr list", flag.ExitOnError)
-	addBinariesFlag(List)
 	addAllFlag(List)
 
-	Version = flag.NewFlagSet("probr version", flag.ExitOnError)
 	addVerboseFlag(Version)
 }
 
-func addBinariesFlag(flagSet *flag.FlagSet) {
-	core.BinariesPath = flagSet.String("binaries-path", filepath.Join(core.UserHomeDir(), "probr", "binaries"), "Location for service pack binaries.")
+// TODO: Get this working... sequencing is an issue here
+func addVarsFileFlag(flagSet *flag.FlagSet) {
+	config.Vars.VarsFile = flagSet.String("config-file", defaultConfigPath(), "Location for config vars file.")
 }
 
 func addVerboseFlag(flagSet *flag.FlagSet) {

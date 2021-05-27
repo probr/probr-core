@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
-	"text/tabwriter"
 
 	"github.com/probr/probr-sdk/plugin"
 
@@ -42,7 +40,7 @@ func main() {
 	// Ref: https://gobyexample.com/command-line-subcommands
 	case "list":
 		flags.List.Parse(os.Args[2:])
-		listServicePacks()
+		core.ListServicePacks()
 
 	case "version":
 		flags.Version.Parse(os.Args[2:])
@@ -129,34 +127,6 @@ func runPlugin(cmd *exec.Cmd, spErrors []core.ServicePackError) ([]core.ServiceP
 		log.Printf("[INFO] Probes all completed with successful results")
 	}
 	return spErrors, nil
-}
-
-// listServicePacks lists all service packs declared in config and checks if they are installed
-func listServicePacks() {
-
-	servicePackNames, err := core.GetPackNames()
-	if err != nil {
-		log.Fatalf("An error occurred while retriveing service packs from config: %v", err)
-	}
-
-	servicePacks := make(map[string]string)
-	for _, pack := range servicePackNames {
-		binaryPath, binErr := core.GetPackBinary(pack)
-		binaryName := filepath.Base(binaryPath)
-		if binErr != nil {
-			servicePacks[binaryName] = fmt.Sprintf("ERROR: %v", binErr)
-		} else {
-			servicePacks[binaryName] = "OK"
-		}
-	}
-
-	// Print output
-	writer := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
-	fmt.Fprintln(writer, "| Service Pack\t | Installed ")
-	for k, v := range servicePacks {
-		fmt.Fprintf(writer, "| %s\t | %s\n", k, v)
-	}
-	writer.Flush()
 }
 
 func printVersion() {
