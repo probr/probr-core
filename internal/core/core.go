@@ -10,21 +10,16 @@ import (
 	"runtime"
 	"strings"
 	"syscall"
+	"text/tabwriter"
 
-	"github.com/probr/probr-sdk/config"
 	"github.com/probr/probr-sdk/plugin"
 	"github.com/probr/probr-sdk/probeengine"
 	"github.com/probr/probr-sdk/utils"
+	"github.com/probr/probr/internal/config"
 
 	hclog "github.com/hashicorp/go-hclog"
 	hcplugin "github.com/hashicorp/go-plugin"
 )
-
-// BinariesPath represents the path where service pack binaries are installed
-var BinariesPath *string
-
-// ConfigPath is the location that probr will use to retrieve config vars
-var ConfigPath *string
 
 // Verbose is a CLI option to increase output detail
 var Verbose *bool
@@ -71,35 +66,23 @@ func SetupCloseHandler() {
 // GetCommands ...
 func GetCommands() (cmdSet []*exec.Cmd, err error) {
 	// TODO: give any exec errors a familiar format
-	packNames, err := GetPackNames()
-	if err != nil {
-		return
-	}
 
-	for _, pack := range packNames {
+	for _, pack := range config.Vars.Run {
 		binaryName, binErr := GetPackBinary(pack)
 		if binErr != nil {
 			err = binErr
 			break
 		}
 		cmd := exec.Command(binaryName)
-		cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", *ConfigPath))
+		cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", *config.Vars.VarsFile))
 		cmdSet = append(cmdSet, cmd)
 	}
+	log.Printf("BIN: %s", config.Vars.BinariesPath)
 	if err == nil && len(cmdSet) == 0 {
-		err = utils.ReformatError("No valid service packs specified")
+		available, _ := hcplugin.Discover("*", config.Vars.BinariesPath)
+		err = utils.ReformatError("No valid service packs specified. Requested: %v, Available: %v", config.Vars.Run, available)
 	}
 	return
-}
-
-// UserHomeDir provides the OS-aware user home directory
-// TODO: move this to SDK
-func UserHomeDir() string {
-	dirname, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	return dirname
 }
 
 // GetPackBinary finds provided service pack in installation folder and return binary name
@@ -108,10 +91,11 @@ func GetPackBinary(name string) (binaryName string, err error) {
 	if runtime.GOOS == "windows" && !strings.HasSuffix(name, ".exe") {
 		name = fmt.Sprintf("%s.exe", name)
 	}
-	*BinariesPath = strings.Replace(*BinariesPath, "~", UserHomeDir(), 1)
-	plugins, _ := hcplugin.Discover(name, *BinariesPath)
+	home, _ := os.UserHomeDir()
+	config.Vars.BinariesPath = strings.Replace(config.Vars.BinariesPath, "~", home, 1)
+	plugins, _ := hcplugin.Discover(name, config.Vars.BinariesPath)
 	if len(plugins) != 1 {
-		err = fmt.Errorf("failed to locate requested plugin '%s'", name)
+		err = fmt.Errorf("failed to locate requested plugin '%s' at path '%s'", name, config.Vars.BinariesPath)
 		return
 	}
 	binaryName = plugins[0]
@@ -121,26 +105,35 @@ func GetPackBinary(name string) (binaryName string, err error) {
 
 // GetPackNames returns all service packs declared in config file
 func GetPackNames() (packNames []string, err error) {
-	packNames, err = getPackNamesFromConfig()
 	if err != nil || (AllPacks != nil && *AllPacks) {
-		return hcplugin.Discover("*", *BinariesPath)
+		return hcplugin.Discover("*", config.Vars.BinariesPath)
 	}
-	return
+	return config.Vars.Run, nil
 }
 
-func getPackNamesFromConfig() ([]string, error) {
-	type simpleVars struct {
-		Run []string `yaml:"Run"`
-	}
-	var vars simpleVars
-
-	configDecoder, file, err := config.NewConfigDecoder(*ConfigPath)
+// ListServicePacks lists all service packs declared in config and checks if they are installed
+func ListServicePacks() {
+	servicePackNames, err := GetPackNames()
 	if err != nil {
-		return nil, err
+		log.Fatalf("An error occurred while retriveing service packs from config: %v", err)
 	}
 
-	err = configDecoder.Decode(&vars)
-	file.Close()
-	return vars.Run, err
+	servicePacks := make(map[string]string)
+	for _, pack := range servicePackNames {
+		binaryPath, binErr := GetPackBinary(pack)
+		binaryName := filepath.Base(binaryPath)
+		if binErr != nil {
+			servicePacks[binaryName] = fmt.Sprintf("ERROR: %v", binErr)
+		} else {
+			servicePacks[binaryName] = "OK"
+		}
+	}
 
+	// Print output
+	writer := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+	fmt.Fprintln(writer, "| Service Pack\t | Installed ")
+	for k, v := range servicePacks {
+		fmt.Fprintf(writer, "| %s\t | %s\n", k, v)
+	}
+	writer.Flush()
 }
