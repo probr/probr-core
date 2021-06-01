@@ -1,21 +1,31 @@
 package run
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"syscall"
 
+	hclog "github.com/hashicorp/go-hclog"
+	hcplugin "github.com/hashicorp/go-plugin"
 	"github.com/probr/probr-sdk/plugin"
+	"github.com/probr/probr-sdk/probeengine"
+	"github.com/probr/probr-sdk/utils"
 
-	"github.com/probr/probr/internal/core"
+	"github.com/probr/probr/internal/config"
 )
 
 // CLIContext executes all plugins with handling for the command line
 func CLIContext() {
 	// Setup for handling SIGTERM (Ctrl+C)
-	core.SetupCloseHandler()
+	setupCloseHandler()
 
-	cmdSet, err := core.GetCommands()
+	cmdSet, err := getCommands()
 	if err != nil {
 		log.Printf("Error loading plugins from config: %s", err)
 		os.Exit(2)
@@ -24,9 +34,9 @@ func CLIContext() {
 	// Run all plugins
 	if err := AllPlugins(cmdSet); err != nil {
 		switch e := err.(type) {
-		case *core.ServicePackErrors:
-			log.Printf("Test Failures: %d out of %d test service packs failed", len(e.SPErrs), len(cmdSet))
-			log.Printf("Failed service packs: %v", e.SPErrs)
+		case *ServicePackErrors:
+			log.Printf("Test Failures: %d out of %d test service packs failed", len(e.Errors), len(cmdSet))
+			log.Print(e.Error())
 			os.Exit(1) // At least one service pack failed
 		default:
 			log.Printf("Internal plugin error: %v", err)
@@ -39,7 +49,7 @@ func CLIContext() {
 
 // AllPlugins executes specified plugins in a loop
 func AllPlugins(cmdSet []*exec.Cmd) (err error) {
-	spErrors := make([]core.ServicePackError, 0) // This will store any plugin errors received during execution
+	spErrors := make([]ServicePackError, 0) // This will store any plugin errors received during execution
 
 	for _, cmd := range cmdSet {
 		spErrors, err = Plugin(cmd, spErrors)
@@ -50,17 +60,17 @@ func AllPlugins(cmdSet []*exec.Cmd) (err error) {
 
 	if len(spErrors) > 0 {
 		// Return all service pack errors to main
-		err = &core.ServicePackErrors{
-			SPErrs: spErrors,
+		err = &ServicePackErrors{
+			Errors: spErrors,
 		}
 	}
 	return
 }
 
 // Plugin executes single plugin based on the provided command
-func Plugin(cmd *exec.Cmd, spErrors []core.ServicePackError) ([]core.ServicePackError, error) {
+func Plugin(cmd *exec.Cmd, spErrors []ServicePackError) ([]ServicePackError, error) {
 	// Launch the plugin process
-	client := core.NewClient(cmd)
+	client := newClient(cmd)
 	defer client.Kill()
 
 	// Connect via RPC
@@ -79,7 +89,7 @@ func Plugin(cmd *exec.Cmd, spErrors []core.ServicePackError) ([]core.ServicePack
 	servicePack := rawSP.(plugin.ServicePack)
 	response := servicePack.RunProbes()
 	if response != nil {
-		spErr := core.ServicePackError{
+		spErr := ServicePackError{
 			ServicePack: cmd.String(), // TODO: retrieve service pack name from interface function
 			Err:         response,
 		}
@@ -88,4 +98,79 @@ func Plugin(cmd *exec.Cmd, spErrors []core.ServicePackError) ([]core.ServicePack
 		log.Printf("[INFO] Probes all completed with successful results")
 	}
 	return spErrors, nil
+}
+
+// GetPackBinary finds provided service pack in installation folder and return binary name
+func GetPackBinary(name string) (binaryName string, err error) {
+	name = filepath.Base(strings.ToLower(name)) // in some cases a filepath may arrive here instead of the base name
+	if runtime.GOOS == "windows" && !strings.HasSuffix(name, ".exe") {
+		name = fmt.Sprintf("%s.exe", name)
+	}
+	home, _ := os.UserHomeDir()
+	config.Vars.BinariesPath = strings.Replace(config.Vars.BinariesPath, "~", home, 1)
+	plugins, _ := hcplugin.Discover(name, config.Vars.BinariesPath)
+	if len(plugins) != 1 {
+		err = fmt.Errorf("failed to locate requested plugin '%s' at path '%s'", name, config.Vars.BinariesPath)
+		return
+	}
+	binaryName = plugins[0]
+
+	return
+}
+
+// setupCloseHandler creates a 'listener' on a new goroutine which will notify the
+// program if it receives an interrupt from the OS. We then handle this by calling
+// our clean up procedure and exiting the program.
+// Ref: https://golangcode.com/handle-ctrl-c-exit-in-terminal/
+func setupCloseHandler() {
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		log.Printf("Execution aborted - %v", "SIGTERM")
+		probeengine.CleanupTmp()
+		os.Exit(0)
+	}()
+}
+
+func getCommands() (cmdSet []*exec.Cmd, err error) {
+	// TODO: give any exec errors a familiar format
+
+	for _, pack := range config.Vars.Run {
+		binaryName, binErr := GetPackBinary(pack)
+		if binErr != nil {
+			err = binErr
+			break
+		}
+		cmd := exec.Command(binaryName)
+		cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", *config.Vars.VarsFile))
+		cmdSet = append(cmdSet, cmd)
+	}
+	log.Printf("BIN: %s", config.Vars.BinariesPath)
+	if err == nil && len(cmdSet) == 0 {
+		available, _ := hcplugin.Discover("*", config.Vars.BinariesPath)
+		err = utils.ReformatError("No valid service packs specified. Requested: %v, Available: %v", config.Vars.Run, available)
+	}
+	return
+}
+
+// newClient client handles the lifecycle of a plugin application
+// Plugin hosts should use one Client for each plugin executable
+// (this is different from the client that manages gRPC)
+func newClient(cmd *exec.Cmd) *hcplugin.Client {
+	logger := hclog.New(&hclog.LoggerOptions{
+		Name:   plugin.ServicePackPluginName,
+		Output: os.Stdout,
+		Level:  hclog.Debug,
+	})
+	var pluginMap = map[string]hcplugin.Plugin{
+		plugin.ServicePackPluginName: &plugin.ServicePackPlugin{},
+	}
+	var handshakeConfig = plugin.GetHandshakeConfig()
+	return hcplugin.NewClient(&hcplugin.ClientConfig{
+		HandshakeConfig: handshakeConfig,
+		Plugins:         pluginMap,
+		Cmd:             cmd,
+		Logger:          logger,
+	})
 }
