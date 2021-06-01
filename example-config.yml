@@ -1,6 +1,8 @@
 # Empty and omitted keys will use default values
+InstallDir:
 WriteDirectory:
-Verbose: false
+Verbose:
+AllPacks:
 Run: # must be all-lowercase
   - "kubernetes"
   # - "storage"
