@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"text/tabwriter"
 
-	"github.com/probr/probr/internal/core"
+	hcplugin "github.com/hashicorp/go-plugin"
+
+	"github.com/probr/probr/internal/config"
 	"github.com/probr/probr/internal/flags"
 	"github.com/probr/probr/run"
 )
@@ -57,7 +60,7 @@ func printVersion() {
 	}
 
 	fmt.Fprintf(os.Stdout, "Probr Version: %s", Version)
-	if core.Verbose != nil && *core.Verbose {
+	if config.Vars.Verbose != nil && *config.Vars.Verbose {
 		fmt.Fprintln(os.Stdout)
 		fmt.Fprintf(os.Stdout, "Commit       : %s", GitCommitHash)
 		fmt.Fprintln(os.Stdout)
@@ -67,18 +70,18 @@ func printVersion() {
 
 // listServicePacks reads all service packs declared in config and checks whether they are installed
 func listServicePacks() {
-	servicePackNames, err := core.GetPackNames()
+	servicePackNames, err := getPackNames()
 	if err != nil {
 		log.Fatalf("An error occurred while retrieving service packs from config: %v", err)
 	}
 
 	servicePacks := make(map[string]string)
 	for _, pack := range servicePackNames {
-		_, binErr := core.GetPackBinary(pack)
+		packName, binErr := run.GetPackBinary(pack)
 		if binErr != nil {
 			servicePacks[pack] = fmt.Sprintf("ERROR: %v", binErr)
 		} else {
-			servicePacks[pack] = "OK"
+			servicePacks[filepath.Base(packName)] = "OK"
 		}
 	}
 
@@ -89,4 +92,12 @@ func listServicePacks() {
 		fmt.Fprintf(writer, "| %s\t | %s\n", k, v)
 	}
 	writer.Flush()
+}
+
+// getPackNames returns all service packs declared in config file
+func getPackNames() (packNames []string, err error) {
+	if err != nil || (config.Vars.AllPacks != nil && *config.Vars.AllPacks) {
+		return hcplugin.Discover("*", config.Vars.BinariesPath)
+	}
+	return config.Vars.Run, nil
 }

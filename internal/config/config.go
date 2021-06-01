@@ -7,12 +7,13 @@ import (
 
 	sdkConfig "github.com/probr/probr-sdk/config"
 	"github.com/probr/probr-sdk/config/setter"
-	"github.com/probr/probr-sdk/utils"
 )
 
 type varOptions struct {
-	VarsFile     *string
-	Verbose      bool
+	VarsFile *string
+
+	AllPacks     *bool    `yaml:"AllPacks"`
+	Verbose      *bool    `yaml:"Verbose"`
 	BinariesPath string   `yaml:"BinariesPath"`
 	Run          []string `yaml:"Run"`
 }
@@ -35,7 +36,6 @@ func (ctx *varOptions) Init() (err error) {
 	sdkConfig.GlobalConfig.Init()
 	ctx.setEnvAndDefaults()
 
-	log.Printf("[DEBUG] Config initialized by %s", utils.CallerName(1))
 	return
 }
 
@@ -63,4 +63,12 @@ func (ctx *varOptions) decode() (err error) {
 
 func (ctx *varOptions) setEnvAndDefaults() {
 	setter.SetVar(&ctx.BinariesPath, "PROBR_BIN", filepath.Join(sdkConfig.GlobalConfig.InstallDir, "bin"))
+
+	f := false
+	if ctx.AllPacks == nil {
+		ctx.AllPacks = &f
+	}
+	if ctx.Verbose == nil {
+		ctx.Verbose = &f
+	}
 }
