@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"syscall"
@@ -101,6 +102,7 @@ func Plugin(cmd *exec.Cmd, spErrors []ServicePackError) ([]ServicePackError, err
 
 // GetPackBinary finds provided service pack in installation folder and return binary name
 func GetPackBinary(name string) (binaryName string, err error) {
+	name = filepath.Base(strings.ToLower(name)) // in some cases a filepath may arrive here instead of the base name
 	if runtime.GOOS == "windows" && !strings.HasSuffix(name, ".exe") {
 		name = fmt.Sprintf("%s.exe", name)
 	}

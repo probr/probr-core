@@ -63,4 +63,12 @@ func (ctx *varOptions) decode() (err error) {
 
 func (ctx *varOptions) setEnvAndDefaults() {
 	setter.SetVar(&ctx.BinariesPath, "PROBR_BIN", filepath.Join(sdkConfig.GlobalConfig.InstallDir, "bin"))
+
+	f := false
+	if ctx.AllPacks == nil {
+		ctx.AllPacks = &f
+	}
+	if ctx.Verbose == nil {
+		ctx.Verbose = &f
+	}
 }

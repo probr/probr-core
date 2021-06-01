@@ -37,11 +37,11 @@ func addVarsFileFlag(flagSet *flag.FlagSet) {
 }
 
 func addVerboseFlag(flagSet *flag.FlagSet) {
-	config.Vars.Verbose = flagSet.Bool("v", false, "Display extended version information")
+	config.Vars.Verbose = flagSet.Bool("v", *config.Vars.Verbose, "Display extended version information")
 }
 
 func addAllFlag(flagSet *flag.FlagSet) {
-	config.Vars.AllPacks = flagSet.Bool("all", false, "Include all installed packs, not just those specified within the provided config")
+	config.Vars.AllPacks = flagSet.Bool("all", *config.Vars.AllPacks, "Include all installed packs, not just those specified within the provided config")
 }
 
 func defaultConfigPath() string {
