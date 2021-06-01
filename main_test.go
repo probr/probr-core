@@ -35,8 +35,9 @@ func Test_getVersion(t *testing.T) {
 		t.Run(tt.testName, func(t *testing.T) {
 			Version = tt.version
 			VersionPostfix = tt.prerelase
-			if got := getVersion(); got != tt.expectedResult {
-				t.Errorf("getVersion() = %v, expected %v", got, tt.expectedResult)
+			printVersion()
+			if Version != tt.expectedResult {
+				t.Errorf("getVersion() = %v, expected %v", Version, tt.expectedResult)
 			}
 		})
 	}

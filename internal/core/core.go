@@ -10,7 +10,6 @@ import (
 	"runtime"
 	"strings"
 	"syscall"
-	"text/tabwriter"
 
 	"github.com/probr/probr-sdk/plugin"
 	"github.com/probr/probr-sdk/probeengine"
@@ -109,31 +108,4 @@ func GetPackNames() (packNames []string, err error) {
 		return hcplugin.Discover("*", config.Vars.BinariesPath)
 	}
 	return config.Vars.Run, nil
-}
-
-// ListServicePacks lists all service packs declared in config and checks if they are installed
-func ListServicePacks() {
-	servicePackNames, err := GetPackNames()
-	if err != nil {
-		log.Fatalf("An error occurred while retriveing service packs from config: %v", err)
-	}
-
-	servicePacks := make(map[string]string)
-	for _, pack := range servicePackNames {
-		binaryPath, binErr := GetPackBinary(pack)
-		binaryName := filepath.Base(binaryPath)
-		if binErr != nil {
-			servicePacks[binaryName] = fmt.Sprintf("ERROR: %v", binErr)
-		} else {
-			servicePacks[binaryName] = "OK"
-		}
-	}
-
-	// Print output
-	writer := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
-	fmt.Fprintln(writer, "| Service Pack\t | Installed ")
-	for k, v := range servicePacks {
-		fmt.Fprintf(writer, "| %s\t | %s\n", k, v)
-	}
-	writer.Flush()
 }
