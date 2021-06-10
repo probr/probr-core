@@ -33,7 +33,6 @@ var (
 )
 
 func main() {
-
 	var subCommand string
 	if len(os.Args) > 1 {
 		subCommand = os.Args[1]

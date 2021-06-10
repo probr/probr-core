@@ -3,7 +3,8 @@ InstallDir:
 WriteDirectory:
 Verbose:
 AllPacks:
-Run: # must be all-lowercase
+LogLevel: info
+Run: # must match the name of an installed service pack binary file
   - "kubernetes"
   # - "storage"
 ServicePacks:
