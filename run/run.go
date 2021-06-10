@@ -11,8 +11,9 @@ import (
 	"strings"
 	"syscall"
 
-	hclog "github.com/hashicorp/go-hclog"
 	hcplugin "github.com/hashicorp/go-plugin"
+	sdkconfig "github.com/probr/probr-sdk/config"
+	"github.com/probr/probr-sdk/logging"
 	"github.com/probr/probr-sdk/plugin"
 	"github.com/probr/probr-sdk/probeengine"
 	"github.com/probr/probr-sdk/utils"
@@ -33,17 +34,17 @@ func CLIContext() {
 
 	// Run all plugins
 	if err := AllPlugins(cmdSet); err != nil {
+		log.Printf("[INFO] Output directory: %s", sdkconfig.GlobalConfig.WriteDirectory)
 		switch e := err.(type) {
 		case *ServicePackErrors:
-			log.Printf("Test Failures: %d out of %d test service packs failed", len(e.Errors), len(cmdSet))
-			log.Print(e.Error())
+			log.Printf("[ERROR] %d out of %d test service packs failed. %v", len(e.Errors), len(cmdSet), e)
 			os.Exit(1) // At least one service pack failed
 		default:
-			log.Printf("Internal plugin error: %v", err)
+			log.Print(utils.ReformatError(err.Error()))
 			os.Exit(2) // Internal error
 		}
 	}
-	log.Printf("Success")
+	log.Printf("[INFO] No errors encountered during plugin execution. Output directory: %s", sdkconfig.GlobalConfig.WriteDirectory)
 	os.Exit(0)
 }
 
@@ -137,16 +138,13 @@ func getCommands() (cmdSet []*exec.Cmd, err error) {
 	// TODO: give any exec errors a familiar format
 
 	for _, pack := range config.Vars.Run {
-		binaryName, binErr := GetPackBinary(pack)
-		if binErr != nil {
-			err = binErr
+		cmd, err := getCommand(pack)
+		if err != nil {
 			break
 		}
-		cmd := exec.Command(binaryName)
-		cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", *config.Vars.VarsFile))
 		cmdSet = append(cmdSet, cmd)
 	}
-	log.Printf("BIN: %s", config.Vars.BinariesPath)
+	log.Printf("[DEBUG] Using bin: %s", config.Vars.BinariesPath)
 	if err == nil && len(cmdSet) == 0 {
 		available, _ := hcplugin.Discover("*", config.Vars.BinariesPath)
 		err = utils.ReformatError("No valid service packs specified. Requested: %v, Available: %v", config.Vars.Run, available)
@@ -154,15 +152,22 @@ func getCommands() (cmdSet []*exec.Cmd, err error) {
 	return
 }
 
+// TODO
+func getCommand(pack string) (cmd *exec.Cmd, err error) {
+	binaryName, binErr := GetPackBinary(pack)
+	if binErr != nil {
+		err = binErr
+		return
+	}
+	cmd = exec.Command(binaryName)
+	cmd.Args = append(cmd.Args, fmt.Sprintf("--varsfile=%s", *config.Vars.VarsFile))
+	return
+}
+
 // newClient client handles the lifecycle of a plugin application
 // Plugin hosts should use one Client for each plugin executable
 // (this is different from the client that manages gRPC)
 func newClient(cmd *exec.Cmd) *hcplugin.Client {
-	logger := hclog.New(&hclog.LoggerOptions{
-		Name:   plugin.ServicePackPluginName,
-		Output: os.Stdout,
-		Level:  hclog.Debug,
-	})
 	var pluginMap = map[string]hcplugin.Plugin{
 		plugin.ServicePackPluginName: &plugin.ServicePackPlugin{},
 	}
@@ -171,6 +176,6 @@ func newClient(cmd *exec.Cmd) *hcplugin.Client {
 		HandshakeConfig: handshakeConfig,
 		Plugins:         pluginMap,
 		Cmd:             cmd,
-		Logger:          logger,
+		Logger:          logging.GetLogger("core"),
 	})
 }

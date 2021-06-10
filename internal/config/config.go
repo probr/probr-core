@@ -7,6 +7,7 @@ import (
 
 	sdkConfig "github.com/probr/probr-sdk/config"
 	"github.com/probr/probr-sdk/config/setter"
+	"github.com/probr/probr-sdk/logging"
 )
 
 type varOptions struct {
@@ -23,6 +24,7 @@ var Vars varOptions
 
 // Init will set values with the content retrieved from a filepath, env vars, or defaults
 func (ctx *varOptions) Init() (err error) {
+
 	if ctx.varsFileIsFound() {
 		sdkConfig.GlobalConfig.VarsFile = *ctx.VarsFile
 		ctx.decode()
@@ -31,11 +33,12 @@ func (ctx *varOptions) Init() (err error) {
 			return
 		}
 	} else {
-		log.Printf("[DEBUG] No vars file provided, unexpected behavior may occur")
+		log.Printf("[WARN] No vars file provided, unexpected behavior may occur")
 	}
 	sdkConfig.GlobalConfig.Init()
+	logging.UseLogger("core")
+	sdkConfig.GlobalConfig.PrepareOutputDirectory()
 	ctx.setEnvAndDefaults()
-
 	return
 }
 
