@@ -18,7 +18,7 @@ Probr deploys a series of probes to test the behaviours of the cloud resources i
 
 ## Architecture
 
-The architecture consists of Probr Core (this repo) and independent service packs containing probes for specific services.  We have built a number of service packs, but you can also build your own using the [Probr SDK](https://github.com/probr/probr-sdk).  We have a developer guide and boiler plate code here (to be done).
+The architecture consists of Probr Core (this repo) and independent service packs containing probes for specific services.  We have built a number of service packs, but you can also build your own using the [Probr SDK](https://github.com/probr/probr-sdk) and following the [boiler plate code](https://github.com/probr/probr-pack-wireframe).
 
 ## Available Service Packs
 
@@ -32,73 +32,45 @@ The architecture consists of Probr Core (this repo) and independent service pack
 
 - **Option 1** - Download the latest Probr package by clicking the corresponding asset on our [release page](https://github.com/probr/probr/releases).
 - **Option 2** - You may build the edge version of Probr by using `make binary` from the source code. This may also be necessary if an executable compatible with your system is not available in on the release page.
-- **Option 3** - TODO: Example Dockerfile which will build a Docker image with both Probr and [Cucumber HTML Reporter](https://www.npmjs.com/package/cucumber-html-reporter) for visualisation
-
-*Note: The usage docs refer to the executable as `probr` or `probr.exe` interchangeably. Use the former for unix/linux systems, and the latter package if you are working in Windows.*
+- **Option 3** - We've [containerized Probr](https://github.com/probr/probr-docker) along with all approved service packs. Visit the repo for more information about how you can harness it for your organization.
 
 ### Get a service pack
 
-See individual service packs for instructions on how to obtain the binary.
+Each service pack can be retrieved as a binary on the releases page of it's repo, or built using the provided Makefile. Installing the service pack is simply a matter of moving it to the `bin/` directory in your install path.
 
-By default Probr will look in the `${HOME}/probr/binaries` path for the service packs. If you want to put them in a different location then you can use the `-binaries-path <directory>` flag when running Probr.
-
-### Configure Probr
-
-Configuration variables can be populated in one of four ways, with the value being taken from the highest priority entry.
-
-1. Default values; found in `internal/config/defaults.go` (lowest priority)
-1. OS environment variables; set locally prior to probr execution (mid priority)
-1. Vars file; yaml (highest non-CLI priority)
-1. CLI flags; see `./probr --help` for available flags (highest priority)
-
-See `example-config.yml` in this repository for an example of configuring Probr.  If you just want to try it out then the defaults will usually be sufficient.
-
-_Note: Different service packs have different requirements, Please see individual service pack documentation for information on the required and default configuations for those packs._
+By default Probr will look in `<HOME>/probr/bin` for the service packs, but if you modify the installation directory (and specify it in your configuration) then Probr will look in the corresponding location: `<INSTALL_DIR>/bin`
 
 ### Run the CLI
 
 1. Run the probr executable via `./probr [OPTIONS]`.  By default it will look for `config.yml` in the same location that you run probr from.
-    - If your binaries aren't in `${HOME}/probr/binaries` then use `-binaries-path=<path>`.
     - Other options can be seen via `./probr --help`
 
 ### View the results
 
-The default location for Probr output is `${HOME}/probr/output/<date>/<time>/<service_pack>`. There are various output files, as follows...
+The default location for Probr output is `${HOME}/probr/output`. There are various output files, as follows...
 
-#### Summary results
+- `summary.json`
+displays an overall summary of the Probr results.
 
-`summary.json` displays an overall summary of the Probr results.
+- `cucumber/`
+Files containing Probe results are displayed in a standardized format, which can be fed into your favourite Cucumber parser or visualisation tool.
 
-#### Cucumber results
+- `audit/`
+Files for each probe contain an audit trail of every step that was executed.
 
-In the `cucumber` sub-folder the Probr results are displayed in a standard "Cucumber" JSON format, which can be fed into your favourite Cucumber parser or visualisation tool.
+## Configuration
 
-#### Audit trail
+Probr is designed to harness configuration variables to properly target your environment and tailor service pack execution to your unique invironment.
 
-In the `audit` sub-folder, there is an audit trail of every step the service pack executed in deploying the probe.  For example, the Kubernetes service pack audit trail captures the exact pod specifications that were deployed for each probe and the response received from Kubernetes.
+Configuration variables can be populated in multiple ways, with the highest priority value taking precedence.
 
-## More configuration
+1. Default values; found in `internal/config/defaults.go` (lowest priority)
+1. OS environment variables; set locally prior to probr execution (mid priority)
+1. Vars file; See `example-config.yml` in this repository for an example (highest non-CLI priority)
 
-### Environment Variables
+**For more information:** Probr SDK and each service pack use a function named `setEnvAndDefaults` which is used to [wrap the setters for these env vars](https://github.com/probr/probr-sdk/blob/main/config/config.go). By looking directly at this code you can see the names of any config file variable (ex. `ctx.VarName`), the env vars that will be read (ie. `PROBR_VAR_NAME`), and the default value that will be used if neither of the others are provided.
 
-If you would like to handle logic differently per environment, env vars may be useful. An example of how to set an env var is as follows:
-
-`export PROBR_WRITE_DIRECTORY=./path/to/output/dir`
-
-### Vars File
-
-An example Vars file is available in [example-config.yml](./example-config.yml).
-You may have as many vars files as you wish in your codebase, which will enable you to maintain configurations for multiple environments in a single codebase.
-
-The location of the vars file is passed as a CLI option e.g.
-
-```sh
-./probr --config-file=./config-dev.yml
-```
-
-## Development & Contributing
-
-Please see the [contributing docs](https://github.com/probr/probr/blob/master/CONTRIBUTING.md) for information on how to develop and contribute to this repository as either a maintainer or open source contributor (the same rules apply for both).
+_Note: Different service packs have different requirements, Please see individual service pack documentation for information on the required and default configuations for those packs._
 
 ## Special Thanks
 
