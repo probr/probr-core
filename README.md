@@ -53,10 +53,10 @@ The default location for Probr output is `${HOME}/probr/output`. There are vario
 displays an overall summary of the Probr results.
 
 - `cucumber/`
-In the `cucumber` subdirectory the Probr results are displayed in a standardized format, which can be fed into your favourite Cucumber parser or visualisation tool.
+Files containing Probe results are displayed in a standardized format, which can be fed into your favourite Cucumber parser or visualisation tool.
 
 - `audit/`
-In the `audit` subdirectory, there will be files for each probe, containing an audit trail of every step that was executed.
+Files for each probe contain an audit trail of every step that was executed.
 
 ## Configuration
 
