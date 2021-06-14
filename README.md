@@ -38,7 +38,7 @@ The architecture consists of Probr Core (this repo) and independent service pack
 
 Each service pack can be retrieved as a binary on the releases page of it's repo, or built using the provided Makefile. Installing the service pack is simply a matter of moving it to the `bin/` directory in your install path.
 
-By default Probr will look in `<HOME>/probr/bin` for the service packs, but if you modify the installation directory (and specify it in your `config.yml`) then Probr will look in the corresponding location: `<INSTALL_DIR>/bin`
+By default Probr will look in `<HOME>/probr/bin` for the service packs, but if you modify the installation directory (and specify it in your configuration) then Probr will look in the corresponding location: `<INSTALL_DIR>/bin`
 
 ### Run the CLI
 
