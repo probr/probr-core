@@ -17,3 +17,4 @@ coverage.out
 
 # Hugo
 site/node_modules
+site/public
