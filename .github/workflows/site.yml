@@ -2,7 +2,6 @@ name: github pages
 
 on: [workflow_dispatch]
 
-
 jobs:
   deploy:
     runs-on: ubuntu-20.04
@@ -30,7 +29,7 @@ jobs:
 
       - name: Build
         working-directory: ./site
-        run: hugo --minify -b https://probr.github.io/probr/
+        run: hugo --minify -b https://probr.github.io/probr-core/
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
