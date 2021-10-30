@@ -1,0 +1,4 @@
+baseURL = 'https://probr.io/'
+languageCode = 'en-us'
+title = 'probr'
+theme = 'docsy'
