@@ -1,7 +1,9 @@
-
 # VS Code
 .vscode
 __debug_bin
+
+# IntelliJ
+.idea
 
 # probr misc ('probr' is Linux exe)
 probr_output
@@ -12,3 +14,6 @@ probr-darwin
 
 # Test
 coverage.out
+
+# Hugo
+site/node_modules
