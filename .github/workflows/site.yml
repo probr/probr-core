@@ -30,7 +30,7 @@ jobs:
 
       - name: Build
         working-directory: ./site
-        run: hugo --minify -b https://pascalstockert.github.io/probr/
+        run: hugo --minify -b https://probr.github.io/probr/
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
