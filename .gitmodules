@@ -1,0 +1,6 @@
+[submodule "sites/themes/docsy/assets/vendor/Font-Awesome"]
+	path = sites/themes/docsy/assets/vendor/Font-Awesome
+	url = https://github.com/FortAwesome/Font-Awesome.git
+[submodule "sites/themes/docsy/assets/vendor/bootstrap"]
+	path = sites/themes/docsy/assets/vendor/bootstrap
+	url = https://github.com/twbs/bootstrap.git
