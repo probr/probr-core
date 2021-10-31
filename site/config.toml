@@ -34,11 +34,11 @@ pygmentsStyle = "tango"
 blog = "/:section/:year/:month/:day/:slug/"
 
 ## Configuration for BlackFriday markdown parser: https://github.com/russross/blackfriday
-# [blackfriday]
-# plainIDAnchors = true
-# hrefTargetBlank = true
-# angledQuotes = false
-# latexDashes = true
+[blackfriday]
+plainIDAnchors = true
+hrefTargetBlank = true
+angledQuotes = false
+latexDashes = true
 
 # Image processing configuration.
 [imaging]
@@ -62,21 +62,21 @@ languageName ="English"
 # Weight used for sorting.
 weight = 1
 
-# [markup]
-# [markup.goldmark]
-# [markup.goldmark.renderer]
-# unsafe = true
-# [markup.highlight]
+[markup]
+[markup.goldmark]
+[markup.goldmark.renderer]
+unsafe = true
+[markup.highlight]
 # See a complete list of available styles at https://xyproto.github.io/splash/docs/all.html
-# style = "paraiso-dark"
+style = "paraiso-dark"
 # Uncomment if you want your chosen highlight style used for code blocks without a specified language
 # guessSyntax = "true"
 
 # Everything below this are Site Params
 
 # Comment out if you don't want the "print entire section" link enabled.
-# [outputs]
-# section = ["HTML", "print", "RSS"]
+[outputs]
+section = ["HTML", "print", "RSS"]
 
 [params]
 copyright = "probr"
