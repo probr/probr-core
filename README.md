@@ -1,4 +1,4 @@
-<img src="assets/probr.png" width="200">
+<img src="site/static/images/probr_wide.png">
 
 ## Dynamic Application Security Testing (DAST) for Cloud
 
