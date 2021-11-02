@@ -4,3 +4,6 @@
 [submodule "site/themes/docsy/assets/vendor/bootstrap"]
 	path = site/themes/docsy/assets/vendor/bootstrap
 	url = https://github.com/twbs/bootstrap.git
+[submodule "site2/themes/docsy/assets/vendor/bootstrap"]
+	path = site2/themes/docsy/assets/vendor/bootstrap
+	url = https://github.com/twbs/bootstrap.git

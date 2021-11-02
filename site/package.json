@@ -1,7 +1,7 @@
 {
   "name": "probr-hugo",
   "version": "0.1.0",
-  "description": "Documentation for probr.",
+  "description": "Documentation for Probr.",
   "dependencies": {},
   "devDependencies": {
     "autoprefixer": "^10.4.0",

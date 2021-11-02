@@ -1,6 +1,6 @@
 languageCode = 'en-us'
 baseURL = "https://probr.io/"
-title = "probr"
+title = "Probr"
 
 enableRobotsTXT = true
 
@@ -55,7 +55,7 @@ anchor = "smart"
 
 [languages]
 [languages.en]
-title = "probr"
+title = "Probr"
 description = "Dynamic Application Security Testing (DAST) for Cloud"
 languageName ="English"
 
@@ -79,7 +79,7 @@ style = "paraiso-dark"
 section = ["HTML", "print", "RSS"]
 
 [params]
-copyright = "probr"
+copyright = "Probr"
 privacy_policy = "https://probr.io/privacy"
 
 # First one is picked as the Twitter card image if not set on page.
