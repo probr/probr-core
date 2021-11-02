@@ -1,0 +1,23 @@
+{{ $col_id := .Get "color" | default "dark" }}
+{{/* Height can be one of: auto, min, med, max, full. */}}
+{{ $height := .Get "height" | default "max"  }}
+<section class="row td-cover-block td-cover-block--height-{{ $height }} js-td-cover td-overlay td-overlay--light -bg-{{ $col_id }}">
+    <div class="container td-overlay__inner">
+        <div class="row align-items-end">
+            <div class="col-lg-6 col-md-8">
+                <img alt="Probr" width="100%" style="object-fit: cover" src="/images/probr_wide.png" />
+                <p class="display-2 mb-0">Finally&ndash; truly prove your resources are compliant.</p>
+            </div>
+            <div class="col-lg-6 mt-5 mt-lg-3 d-sm-block" style="display: none">
+                <asciinema-player
+                        loop autoplay font-size="12px" rows=12 cols=60
+                        src="TODO"></asciinema-player>
+            </div>
+            <div class="col-12 pt-3">
+                <div class="pt-3 lead text-center">
+                    {{ .Inner }}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
