@@ -5,7 +5,7 @@ draft: false
 ---
 
 
-This document contains links to the release pages for repositories that are maintained by the Probr team at Synechron, and— where specified— additional links to sanctioned third-party service packs.
+This document contains links to the release pages for Probr components that have been vetted by the Probr team at Synechron.
 
 The "Latest Blessed Version" listed on this page for each resource will be updated whenever a new release has been thoroughly vetted by the Probr team.
 
