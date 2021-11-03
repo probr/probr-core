@@ -106,14 +106,14 @@ url_latest_version = "https://probr.io/site"
 # Repository configuration (URLs for in-page links to opening issues and suggesting changes)
 github_repo = "https://github.com/probr/probr-core"
 # An optional link to a related project repo. For example, the sibling repository where your product code lives.
-github_project_repo = "https://github.com/probr/probr-core"
+# github_project_repo = "https://github.com/probr"
 
 # Specify a value here if your content directory is not in your repo's root directory
-github_subdir = "https://github.com/probr/probr-core/tree/main/site"
+github_subdir = "site"
 
 # Uncomment this if you have a newer GitHub repo with "main" as the default branch,
 # or specify a new value if you want to reference another branch in your GitHub links
-# github_branch= "main"
+github_branch= "main"
 
 # Enable Algolia DocSearch
 algolia_docsearch = false
