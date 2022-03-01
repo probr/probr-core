@@ -1,0 +1,27 @@
+name: Post merge to main
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  first_test_job:
+    name: Find extra commits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - id: Fetch_tags
+        run: git fetch --prune --unshallow --tags
+      - run: git describe --tags
+      - id: set_output_tags
+        run: |
+          echo ::set-output name=extra_commits::$(git describe --tags)
+      - name: Set Badge
+        uses: RubbaBoy/BYOB@v1.2.1
+        with:
+          NAME: Version
+          LABEL: 'Version'
+          STATUS: ${{ steps.set_output_tags.outputs.extra_commits }}
+          COLOR: CFC03A
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
