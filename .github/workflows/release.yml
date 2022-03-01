@@ -1,0 +1,32 @@
+name: Manual release creation
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: "Release name"
+        required: true
+
+jobs:
+  release_badge:
+    name: Create Release and Add Badge
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.release_name }}
+          release_name: ${{ github.event.inputs.release_name }}
+          body: ${{ github.event.head_commit.message }}
+      - name: Set Badge
+        uses: RubbaBoy/BYOB@v1.2.1
+        with:
+          NAME: Version
+          LABEL: 'Version'
+          STATUS: ${{ github.event.inputs.release_name }}
+          COLOR: 51B077
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
