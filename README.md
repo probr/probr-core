@@ -1,5 +1,7 @@
 <img src="site/static/images/probr_wide.png">
 
+![](https://byob.yarr.is/probr/probr-core/Version)
+
 ## Dynamic Application Security Testing (DAST) for Cloud
 
 Probr analyzes the complex behaviours and interactions in your cloud resources to enable engineers, developers and operations teams identify and fix security related flaws at different points in the lifecycle.
