@@ -79,9 +79,6 @@ style = "paraiso-dark"
 section = ["HTML", "print", "RSS"]
 
 [params]
-copyright = "Citihub Digital"
-privacy_policy = "https://citihub.com/privacy"
-
 # First one is picked as the Twitter card image if not set on page.
 # images = ["images/project-illustration.png"]
 
