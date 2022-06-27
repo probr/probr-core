@@ -33,3 +33,47 @@ displays an overall summary of the Probr results.
 Files containing Probe results are displayed in a standardized format, which can be fed into your favourite Cucumber parser or visualisation tool.
 - `audit/`
 Files for each probe contain an audit trail of every step that was executed.
+
+### Runtime Configuration
+
+Probr is designed to harness configuration variables to properly target your environment and tailor service pack execution to your unique invironment.
+
+Configuration variables can be populated in multiple ways, with the highest priority value taking precedence.
+
+1. Default values; found in `internal/config/defaults.go` (lowest priority)
+1. OS environment variables; set locally prior to probr execution (mid priority)
+1. Vars file; See `example-config.yml` in this repository for an example (highest priority)
+
+> **For more information:** Probr SDK and each service pack use a function named `setEnvAndDefaults` which is used to [wrap the setters for these env vars](https://github.com/probr/probr-sdk/blob/main/config/config.go). By looking directly at this code you can see the names of any config file variable (ex. `ctx.VarName`), the env vars that will be read (ie. `PROBR_VAR_NAME`), and the default value that will be used if neither of the others are provided.
+
+The following config executes the only Kubernetes service pack, and passes multiple variables to that service pack.
+
+```
+Run:
+  - kubernetes
+ServicePacks:
+  Kubernetes:
+    KubeConfig: /probr/run/kubeconfig
+    AuthorisedContainerImage: citihubprod.azurecr.io/citihub/probr-probe
+    UnauthorisedContainerImage: docker.io/citihub/probr-probe
+```
+
+To run multiple service packs, simply add another item to the list of packs to run:
+
+```
+Run:
+  - kubernetes
+  - storage
+```
+
+If each pack calls for config variables, nest the vars within the name of the service pack.
+
+```
+ServicePacks:
+  Kubernetes:
+    KubeConfig: /probr/run/kubeconfig
+  Storage:
+    Key: /probr/run/keyfile
+```
+
+_Note: Different service packs have different requirements, Please see individual service pack documentation for information on the required and default configuations for those packs._
