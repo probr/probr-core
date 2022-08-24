@@ -2,6 +2,12 @@
 
 ![](https://byob.yarr.is/probr/probr-core/Version)
 
+# Probr
+
+This repository serves as the core plugin harness to be used with "service pack" plugins, noted below.
+
+*Probr and its service packs are not currently sponsored and does not have regular maintenance or upgrades. If you are using Probr and require new features or fixes, please raise an issue on this repository. Maintainers will be alerted and typically engage within 24 hours.*
+
 ## Dynamic Application Security Testing (DAST) for Cloud
 
 Probr analyzes the complex behaviours and interactions in your cloud resources to enable engineers, developers and operations teams identify and fix security related flaws at different points in the lifecycle.
